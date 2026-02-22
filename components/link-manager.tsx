@@ -1,30 +1,20 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useLinks } from "@/hooks/use-links"
 import { usePeerSync } from "@/hooks/use-peer-sync"
 import { useImportExport } from "@/hooks/use-import-export"
 import { LinkInput } from "@/components/link-input"
 import { LinkList } from "@/components/link-list"
+import { GroupSidebar } from "@/components/group-sidebar"
 import { PeerPanel } from "@/components/peer-panel"
 import { ImportExportModal } from "@/components/import-export-modal"
-import { GroupManager } from "@/components/group-manager"
 import { ConnectionBadge } from "@/components/connection-badge"
 import { SyncStatus } from "@/components/sync-status"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Radio,
-  ArrowDownUp,
-  Link as LinkIcon,
-  FolderOpen,
-  Layers,
-  Inbox,
-} from "lucide-react"
-import { Toaster } from "sonner"
-import { cn } from "@/lib/utils"
+import { Toaster } from "@/components/ui/sonner"
+import { Radio, ArrowDownUp, Link as LinkIcon } from "lucide-react"
 
 export function LinkManager() {
   const {
@@ -45,33 +35,42 @@ export function LinkManager() {
 
   const [peerPanelOpen, setPeerPanelOpen] = useState(false)
   const [importExportOpen, setImportExportOpen] = useState(false)
-  const [groupManagerOpen, setGroupManagerOpen] = useState(false)
-  const [filterGroupId, setFilterGroupId] = useState<string | null>("all")
+  const [activeGroupId, setActiveGroupId] = useState<string | null>("all")
 
   const activePeers = connections.filter((c) => c.status === "connected")
 
   const handleAddLink = useCallback(
-    (url: string, metadata?: Parameters<typeof addLink>[1]) => {
+    (url: string, metadata?: Partial<{ groupId: string }>) => {
       return addLink(url, metadata)
     },
     [addLink]
   )
 
-  const ungroupedCount = links.filter((l) => !l.groupId).length
+  const { linkCountByGroup, ungroupedCount } = useMemo(() => {
+    const counts: Record<string, number> = {}
+    let ungrouped = 0
+    for (const link of links) {
+      if (link.groupId) {
+        counts[link.groupId] = (counts[link.groupId] || 0) + 1
+      } else {
+        ungrouped++
+      }
+    }
+    return { linkCountByGroup: counts, ungroupedCount: ungrouped }
+  }, [links])
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border px-5 py-3">
+      <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <LinkIcon className="h-4 w-4 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-foreground leading-none">
+            <h1 className="text-sm font-semibold leading-none text-foreground">
               LinkDrop
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {isLoaded
                 ? `${links.length} link${links.length !== 1 ? "s" : ""}`
                 : "Loading..."}
@@ -79,7 +78,7 @@ export function LinkManager() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ConnectionBadge />
           <Separator orientation="vertical" className="h-4" />
           <SyncStatus syncState={syncState} peerCount={activePeers.length} />
@@ -87,22 +86,8 @@ export function LinkManager() {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => setGroupManagerOpen(true)}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <FolderOpen className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Groups</span>
-            {groups.length > 0 && (
-              <Badge variant="secondary" className="h-4 px-1 text-[10px]">
-                {groups.length}
-              </Badge>
-            )}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
             onClick={() => setImportExportOpen(true)}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+            className="gap-1.5 text-xs"
           >
             <ArrowDownUp className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Import/Export</span>
@@ -124,63 +109,36 @@ export function LinkManager() {
         </div>
       </header>
 
-      {/* Group Filter Bar */}
-      {groups.length > 0 && (
-        <div className="border-b border-border">
-          <ScrollArea className="w-full">
-            <div className="flex items-center gap-1 px-5 py-2">
-              <FilterChip
-                active={filterGroupId === "all"}
-                onClick={() => setFilterGroupId("all")}
-                icon={<Layers className="h-3 w-3" />}
-                label="All"
-                count={links.length}
-              />
-              {groups.map((group) => {
-                const count = links.filter(
-                  (l) => l.groupId === group.id
-                ).length
-                return (
-                  <FilterChip
-                    key={group.id}
-                    active={filterGroupId === group.id}
-                    onClick={() => setFilterGroupId(group.id)}
-                    color={group.color}
-                    label={group.name}
-                    count={count}
-                  />
-                )
-              })}
-              <FilterChip
-                active={filterGroupId === "ungrouped"}
-                onClick={() => setFilterGroupId("ungrouped")}
-                icon={<Inbox className="h-3 w-3" />}
-                label="Ungrouped"
-                count={ungroupedCount}
-              />
-            </div>
-          </ScrollArea>
+      <div className="flex flex-1 overflow-hidden">
+        <GroupSidebar
+          groups={groups}
+          linkCountByGroup={linkCountByGroup}
+          totalLinks={links.length}
+          ungroupedCount={ungroupedCount}
+          activeGroupId={activeGroupId}
+          onSelectGroup={setActiveGroupId}
+          onAddGroup={addGroup}
+          onUpdateGroup={updateGroup}
+          onDeleteGroup={deleteGroup}
+        />
+
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <LinkInput
+            groups={groups}
+            activeGroupId={activeGroupId}
+            onAddLink={handleAddLink}
+          />
+          <LinkList
+            links={links}
+            groups={groups}
+            isLoaded={isLoaded}
+            onDeleteLink={deleteLink}
+            onMoveToGroup={moveToGroup}
+            filterGroupId={activeGroupId}
+          />
         </div>
-      )}
+      </div>
 
-      {/* Link Input */}
-      <LinkInput
-        groups={groups}
-        activeGroupId={filterGroupId}
-        onAddLink={handleAddLink}
-      />
-
-      {/* Link List */}
-      <LinkList
-        links={links}
-        groups={groups}
-        isLoaded={isLoaded}
-        onDeleteLink={deleteLink}
-        onMoveToGroup={moveToGroup}
-        filterGroupId={filterGroupId}
-      />
-
-      {/* Peer Panel */}
       <PeerPanel
         open={peerPanelOpen}
         onOpenChange={setPeerPanelOpen}
@@ -192,7 +150,6 @@ export function LinkManager() {
         onForceSync={forceSync}
       />
 
-      {/* Import/Export Modal */}
       <ImportExportModal
         open={importExportOpen}
         onOpenChange={setImportExportOpen}
@@ -203,69 +160,7 @@ export function LinkManager() {
         linkCount={links.length}
       />
 
-      {/* Group Manager Modal */}
-      <GroupManager
-        open={groupManagerOpen}
-        onOpenChange={setGroupManagerOpen}
-        groups={groups}
-        onAddGroup={addGroup}
-        onUpdateGroup={updateGroup}
-        onDeleteGroup={deleteGroup}
-      />
-
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          className: "bg-card text-card-foreground border-border",
-        }}
-      />
+      <Toaster position="bottom-right" />
     </div>
-  )
-}
-
-function FilterChip({
-  active,
-  onClick,
-  label,
-  count,
-  color,
-  icon,
-}: {
-  active: boolean
-  onClick: () => void
-  label: string
-  count: number
-  color?: string
-  icon?: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors shrink-0",
-        active
-          ? "bg-primary text-primary-foreground"
-          : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-      )}
-    >
-      {color && (
-        <span
-          className="h-2 w-2 rounded-full shrink-0"
-          style={{ backgroundColor: active ? "currentColor" : color }}
-        />
-      )}
-      {icon}
-      {label}
-      <span
-        className={cn(
-          "text-[10px]",
-          active
-            ? "text-primary-foreground/70"
-            : "text-muted-foreground/60"
-        )}
-      >
-        {count}
-      </span>
-    </button>
   )
 }
