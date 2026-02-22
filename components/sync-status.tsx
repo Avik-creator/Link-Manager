@@ -13,7 +13,7 @@ export function SyncStatus({ syncState, peerCount }: SyncStatusProps) {
   const iconMap = {
     syncing: <Loader2 className="h-3.5 w-3.5 animate-spin text-chart-1" />,
     synced: <Check className="h-3.5 w-3.5 text-emerald-500" />,
-    error: <AlertCircle className="h-3.5 w-3.5 text-destructive-foreground" />,
+    error: <AlertCircle className="h-3.5 w-3.5 text-destructive" />,
     idle: <Minus className="h-3.5 w-3.5 text-muted-foreground" />,
   }
 

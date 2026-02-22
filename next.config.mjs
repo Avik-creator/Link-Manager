@@ -1,3 +1,8 @@
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
@@ -12,7 +17,18 @@ const nextConfig = {
       },
     ],
   },
-  turbopack: {},
+  turbopack: {
+    resolveAlias: {
+      yjs: resolve(__dirname, 'node_modules/yjs'),
+    },
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      yjs: resolve(__dirname, 'node_modules/yjs'),
+    }
+    return config
+  },
 }
 
 export default nextConfig

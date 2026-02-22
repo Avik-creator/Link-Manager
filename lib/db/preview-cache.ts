@@ -26,10 +26,10 @@ export async function getCachedPreview(
 
     return {
       url: entry.url,
-      title: entry.title,
-      description: entry.description,
-      image: entry.image,
-      favicon: entry.favicon,
+      title: entry.title || "",
+      description: entry.description || "",
+      image: entry.image || "",
+      favicon: entry.favicon || "",
       hostname: entry.hostname,
       cachedAt: entry.cachedAt,
     }

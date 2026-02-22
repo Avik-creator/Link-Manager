@@ -1,20 +1,20 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import type { PeerConnection, SyncState } from '@/lib/types'
+import { useState } from "react"
+import type { PeerConnection, SyncState } from "@/lib/types"
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Copy, Check, RefreshCw, X, Radio } from 'lucide-react'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
+import { Copy, Check, RefreshCw, X, Radio } from "lucide-react"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 interface PeerPanelProps {
   open: boolean
@@ -37,16 +37,16 @@ export function PeerPanel({
   onDisconnect,
   onForceSync,
 }: PeerPanelProps) {
-  const [remotePeerId, setRemotePeerId] = useState('')
+  const [remotePeerId, setRemotePeerId] = useState("")
   const [copied, setCopied] = useState(false)
 
-  const activePeers = connections.filter((c) => c.status === 'connected')
+  const activePeers = connections.filter((c) => c.status === "connected")
 
   const handleCopyId = () => {
     if (!peerId) return
     navigator.clipboard.writeText(peerId)
     setCopied(true)
-    toast.success('Peer ID copied')
+    toast.success("Peer ID copied")
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -54,12 +54,12 @@ export function PeerPanel({
     const id = remotePeerId.trim()
     if (!id) return
     if (id === peerId) {
-      toast.error('Cannot connect to yourself')
+      toast.error("Cannot connect to yourself")
       return
     }
     onConnect(id)
-    setRemotePeerId('')
-    toast.success('Connecting to peer...')
+    setRemotePeerId("")
+    toast.success("Connecting to peer...")
   }
 
   return (
@@ -72,18 +72,18 @@ export function PeerPanel({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-4 flex-1 overflow-auto px-4">
+        <div className="flex flex-1 flex-col gap-4 overflow-auto px-4">
           {/* Your Peer ID */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Your Peer ID
             </label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded-md bg-muted px-3 py-2 text-xs font-mono text-foreground truncate">
-                {peerId || 'Initializing...'}
+              <code className="flex-1 truncate rounded-md bg-muted px-3 py-2 font-mono text-xs text-foreground">
+                {peerId || "Initializing..."}
               </code>
               <Button
-                size="sm"
+                size="icon-sm"
                 variant="outline"
                 onClick={handleCopyId}
                 disabled={!peerId}
@@ -102,7 +102,7 @@ export function PeerPanel({
 
           {/* Connect to Peer */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Connect to Peer
             </label>
             <div className="flex items-center gap-2">
@@ -110,10 +110,10 @@ export function PeerPanel({
                 value={remotePeerId}
                 onChange={(e) => setRemotePeerId(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConnect()
+                  if (e.key === "Enter") handleConnect()
                 }}
                 placeholder="Enter remote peer ID..."
-                className="text-xs font-mono"
+                className="font-mono text-xs"
               />
               <Button
                 size="sm"
@@ -130,7 +130,7 @@ export function PeerPanel({
           {/* Connected Peers */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Connections ({activePeers.length})
               </label>
               {activePeers.length > 0 && (
@@ -138,13 +138,13 @@ export function PeerPanel({
                   size="sm"
                   variant="ghost"
                   onClick={onForceSync}
-                  disabled={syncState === 'syncing'}
+                  disabled={syncState === "syncing"}
                   className="h-7 gap-1 text-xs"
                 >
                   <RefreshCw
                     className={cn(
-                      'h-3 w-3',
-                      syncState === 'syncing' && 'animate-spin'
+                      "h-3 w-3",
+                      syncState === "syncing" && "animate-spin"
                     )}
                   />
                   Force Sync
@@ -164,26 +164,26 @@ export function PeerPanel({
                 {connections.map((conn) => (
                   <div
                     key={conn.peerId}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 bg-muted/50"
+                    className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2"
                   >
                     <div
                       className={cn(
-                        'h-2 w-2 rounded-full shrink-0',
-                        conn.status === 'connected' && 'bg-emerald-500',
-                        conn.status === 'connecting' && 'bg-amber-500 animate-pulse',
-                        conn.status === 'disconnected' && 'bg-muted-foreground',
-                        conn.status === 'error' && 'bg-destructive'
+                        "h-2 w-2 shrink-0 rounded-full",
+                        conn.status === "connected" && "bg-emerald-500",
+                        conn.status === "connecting" && "animate-pulse bg-amber-500",
+                        conn.status === "disconnected" && "bg-muted-foreground",
+                        conn.status === "error" && "bg-destructive"
                       )}
                     />
-                    <code className="flex-1 text-xs font-mono text-foreground truncate">
+                    <code className="flex-1 truncate font-mono text-xs text-foreground">
                       {conn.peerId}
                     </code>
-                    <span className="text-xs text-muted-foreground capitalize shrink-0">
+                    <span className="shrink-0 text-xs capitalize text-muted-foreground">
                       {conn.status}
                     </span>
                     <button
                       onClick={() => onDisconnect(conn.peerId)}
-                      className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
+                      className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground transition-colors hover:text-foreground"
                       aria-label={`Disconnect from ${conn.peerId}`}
                     >
                       <X className="h-3 w-3" />

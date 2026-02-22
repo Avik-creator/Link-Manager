@@ -49,7 +49,6 @@ export function LinkPreviewCard({ url }: LinkPreviewCardProps) {
             alt={preview.title || "Link preview"}
             className="h-full w-full object-cover"
             loading="lazy"
-            crossOrigin="anonymous"
             onError={() => setImageError(true)}
           />
         </div>

@@ -5,10 +5,10 @@ const DB_VERSION = 1
 
 export interface PreviewCacheEntry {
   url: string
-  title: string
-  description: string
-  image: string
-  favicon: string
+  title?: string
+  description?: string
+  image?: string
+  favicon?: string
   hostname: string
   cachedAt: number
 }
