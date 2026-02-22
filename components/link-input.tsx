@@ -1,20 +1,61 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import type { Group, Link } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Plus, Link as LinkIcon } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Plus, Link as LinkIcon, Inbox } from 'lucide-react'
 import { isValidUrl } from '@/lib/url'
 import { toast } from 'sonner'
 
 interface LinkInputProps {
-  onAddLink: (url: string) => ReturnType<typeof Function> | null
+  groups: Group[]
+  activeGroupId: string | null
+  onAddLink: (url: string, metadata?: Partial<Link>) => Link | null
 }
 
-export function LinkInput({ onAddLink }: LinkInputProps) {
+export function LinkInput({ groups, activeGroupId, onAddLink }: LinkInputProps) {
   const [value, setValue] = useState('')
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('none')
   const [isFocused, setIsFocused] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // When the active filter changes, auto-select the target group
+  useEffect(() => {
+    if (activeGroupId && activeGroupId !== 'all' && activeGroupId !== 'ungrouped') {
+      setSelectedGroupId(activeGroupId)
+    } else {
+      setSelectedGroupId('none')
+    }
+  }, [activeGroupId])
+
+  const submitLink = useCallback(
+    (url: string) => {
+      const metadata: Partial<Link> = {}
+      if (selectedGroupId !== 'none') {
+        metadata.groupId = selectedGroupId
+      }
+      const result = onAddLink(url, metadata)
+      if (result === null) {
+        toast.info('Duplicate link', {
+          description: 'This link already exists in your collection.',
+        })
+        return false
+      }
+      toast.success('Link added', {
+        description: url.length > 60 ? url.slice(0, 60) + '...' : url,
+      })
+      return true
+    },
+    [onAddLink, selectedGroupId]
+  )
 
   const handleSubmit = useCallback(() => {
     const url = value.trim()
@@ -27,19 +68,10 @@ export function LinkInput({ onAddLink }: LinkInputProps) {
       return
     }
 
-    const result = onAddLink(url)
-    if (result === null) {
-      toast.info('Duplicate link', {
-        description: 'This link already exists in your collection.',
-      })
-      return
+    if (submitLink(url)) {
+      setValue('')
     }
-
-    setValue('')
-    toast.success('Link added', {
-      description: url.length > 60 ? url.slice(0, 60) + '...' : url,
-    })
-  }, [value, onAddLink])
+  }, [value, submitLink])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -60,21 +92,13 @@ export function LinkInput({ onAddLink }: LinkInputProps) {
         e.preventDefault()
         setValue(text)
         setTimeout(() => {
-          const result = onAddLink(text)
-          if (result === null) {
-            toast.info('Duplicate link', {
-              description: 'This link already exists in your collection.',
-            })
-          } else if (result) {
+          if (submitLink(text)) {
             setValue('')
-            toast.success('Link added', {
-              description: text.length > 60 ? text.slice(0, 60) + '...' : text,
-            })
           }
         }, 100)
       }
     },
-    [value, onAddLink]
+    [value, submitLink]
   )
 
   return (
@@ -100,12 +124,40 @@ export function LinkInput({ onAddLink }: LinkInputProps) {
           </kbd>
         )}
       </div>
+
+      {groups.length > 0 && (
+        <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+          <SelectTrigger className="w-36 shrink-0 text-xs" size="sm">
+            <SelectValue placeholder="No group" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">
+              <span className="flex items-center gap-2">
+                <Inbox className="h-3.5 w-3.5 text-muted-foreground" />
+                No group
+              </span>
+            </SelectItem>
+            {groups.map((group) => (
+              <SelectItem key={group.id} value={group.id}>
+                <span className="flex items-center gap-2">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: group.color }}
+                  />
+                  {group.name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
       <Button
         onClick={handleSubmit}
         size="icon"
         disabled={!value.trim()}
         aria-label="Add link"
-        className="bg-primary text-primary-foreground hover:bg-primary-700 shrink-0"
+        className="shrink-0"
       >
         <Plus className="h-4 w-4" />
       </Button>

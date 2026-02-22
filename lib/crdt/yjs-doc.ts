@@ -1,7 +1,7 @@
 import * as Y from "yjs"
 import { IndexeddbPersistence } from "y-indexeddb"
 import { nanoid } from "nanoid"
-import type { Link } from "@/lib/types"
+import type { Link, Group } from "@/lib/types"
 import { canonicalizeUrl, ensureProtocol } from "@/lib/url"
 
 const DOC_NAME = "linkdrop-crdt-v1"
@@ -23,6 +23,11 @@ export function getDoc(): Y.Doc {
 /** Returns the Y.Map that stores links as JSON strings keyed by link ID. */
 export function getLinksMap(): Y.Map<string> {
   return getDoc().getMap<string>("links")
+}
+
+/** Returns the Y.Map that stores groups as JSON strings keyed by group ID. */
+export function getGroupsMap(): Y.Map<string> {
+  return getDoc().getMap<string>("groups")
 }
 
 /**
@@ -139,6 +144,82 @@ export function observeLinks(callback: () => void): () => void {
   const linksMap = getLinksMap()
   linksMap.observe(callback)
   return () => linksMap.unobserve(callback)
+}
+
+// ─── Group CRUD operations ──────────────────────────────────────────────────
+
+/** Creates a new group. Returns the created Group. */
+export function addGroup(name: string, color: string): Group {
+  const now = Date.now()
+  const group: Group = {
+    id: nanoid(),
+    name: name.trim(),
+    color,
+    createdAt: now,
+    updatedAt: now,
+    deleted: false,
+  }
+  getGroupsMap().set(group.id, JSON.stringify(group))
+  return group
+}
+
+/** Updates a group by ID. */
+export function updateGroup(id: string, partial: Partial<Group>): void {
+  const groupsMap = getGroupsMap()
+  const raw = groupsMap.get(id)
+  if (!raw) return
+  try {
+    const existing: Group = JSON.parse(raw)
+    const updated: Group = {
+      ...existing,
+      ...partial,
+      id: existing.id,
+      updatedAt: Date.now(),
+    }
+    groupsMap.set(id, JSON.stringify(updated))
+  } catch {
+    // Skip malformed entries
+  }
+}
+
+/** Soft-deletes a group and ungroups all its links. */
+export function deleteGroup(id: string): void {
+  updateGroup(id, { deleted: true })
+  // Remove groupId from all links in this group
+  const linksMap = getLinksMap()
+  for (const [linkId, value] of linksMap.entries()) {
+    try {
+      const link: Link = JSON.parse(value)
+      if (link.groupId === id && !link.deleted) {
+        const updated = { ...link, groupId: undefined, updatedAt: Date.now() }
+        linksMap.set(linkId, JSON.stringify(updated))
+      }
+    } catch {
+      // skip
+    }
+  }
+}
+
+/** Returns all non-deleted groups, sorted by creation date. */
+export function getGroups(): Group[] {
+  const groupsMap = getGroupsMap()
+  const groups: Group[] = []
+  for (const [, value] of groupsMap.entries()) {
+    try {
+      const group: Group = JSON.parse(value)
+      if (!group.deleted) groups.push(group)
+    } catch {
+      // skip
+    }
+  }
+  return groups.sort((a, b) => a.createdAt - b.createdAt)
+}
+
+/** Subscribes to all changes on the groups map. Returns an unsubscribe function. */
+export function observeGroups(callback: () => void): () => void {
+  const groupsMap = getGroupsMap()
+  groupsMap.observe(callback)
+  return () => groupsMap.unobserve(callback)
 }
 
 // ─── State exchange helpers (used by sync provider) ─────────────────────────
