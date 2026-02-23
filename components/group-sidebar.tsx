@@ -59,9 +59,9 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
-  Link as LinkIcon,
   FolderPlus,
 } from "lucide-react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 interface GroupSidebarProps {
@@ -137,8 +137,15 @@ export function GroupSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="cursor-default hover:bg-transparent active:bg-transparent">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <LinkIcon className="size-4" />
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden shrink-0">
+                <Image
+                  src="/icon.svg"
+                  alt="LinkDrop"
+                  width={32}
+                  height={32}
+                  className="size-8"
+                  priority
+                />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">LinkDrop</span>
