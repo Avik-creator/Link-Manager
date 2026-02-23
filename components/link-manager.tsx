@@ -14,15 +14,12 @@ import { SyncStatus } from "@/components/sync-status"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet"
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
-import { Radio, ArrowDownUp, Link as LinkIcon, FolderOpen } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { Radio, ArrowDownUp } from "lucide-react"
 
 export function LinkManager() {
   const {
@@ -45,9 +42,7 @@ export function LinkManager() {
   const [peerPanelOpen, setPeerPanelOpen] = useState(false)
   const [importExportOpen, setImportExportOpen] = useState(false)
   const [activeGroupId, setActiveGroupId] = useState<string | null>("all")
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
-  const isMobile = useIsMobile()
   const activePeers = connections.filter((c) => c.status === "connected")
 
   const handleAddLink = useCallback(
@@ -55,14 +50,6 @@ export function LinkManager() {
       return addLink(url, metadata)
     },
     [addLink]
-  )
-
-  const handleSelectGroup = useCallback(
-    (groupId: string | null) => {
-      setActiveGroupId(groupId)
-      if (isMobile) setMobileSidebarOpen(false)
-    },
-    [isMobile]
   )
 
   const { linkCountByGroup, ungroupedCount } = useMemo(() => {
@@ -78,108 +65,69 @@ export function LinkManager() {
     return { linkCountByGroup: counts, ungroupedCount: ungrouped }
   }, [links])
 
-  const sidebarContent = (
-    <GroupSidebar
-      groups={groups}
-      linkCountByGroup={linkCountByGroup}
-      totalLinks={links.length}
-      ungroupedCount={ungroupedCount}
-      activeGroupId={activeGroupId}
-      onSelectGroup={handleSelectGroup}
-      onAddGroup={addGroup}
-      onUpdateGroup={updateGroup}
-      onDeleteGroup={deleteGroup}
-    />
-  )
-
   return (
-    <div className="flex h-dvh flex-col bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border px-3 py-2.5 sm:px-4 sm:py-3">
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Mobile sidebar toggle */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 md:hidden"
-            onClick={() => setMobileSidebarOpen(true)}
-            aria-label="Open groups"
-          >
-            <FolderOpen className="h-4 w-4" />
-          </Button>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <LinkIcon className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold leading-none text-foreground">
-              LinkDrop
-            </h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {isLoaded
-                ? `${links.length} link${links.length !== 1 ? "s" : ""}`
-                : "Loading..."}
-            </p>
-          </div>
-        </div>
+    <SidebarProvider>
+      <GroupSidebar
+        groups={groups}
+        linkCountByGroup={linkCountByGroup}
+        totalLinks={links.length}
+        ungroupedCount={ungroupedCount}
+        activeGroupId={activeGroupId}
+        onSelectGroup={setActiveGroupId}
+        onAddGroup={addGroup}
+        onUpdateGroup={updateGroup}
+        onDeleteGroup={deleteGroup}
+        isLoaded={isLoaded}
+        linkCount={links.length}
+      />
 
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          <div className="hidden sm:flex sm:items-center sm:gap-3">
-            <ConnectionBadge />
-            <Separator orientation="vertical" className="h-4" />
-            <SyncStatus syncState={syncState} peerCount={activePeers.length} />
-            <Separator orientation="vertical" className="h-4" />
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setImportExportOpen(true)}
-            className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-          >
-            <ArrowDownUp className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Import/Export</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setPeerPanelOpen(true)}
-            className="gap-1.5 text-xs h-8 px-2 sm:px-3"
-          >
-            <Radio className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Peers</span>
-            {activePeers.length > 0 && (
-              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
-                {activePeers.length}
-              </span>
-            )}
-          </Button>
-        </div>
-      </header>
+      <SidebarInset>
+        <div className="flex h-dvh flex-col">
+          {/* Header */}
+          <header className="flex items-center justify-between border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-1 h-4" />
+              <div className="hidden sm:flex sm:items-center sm:gap-3">
+                <ConnectionBadge />
+                <Separator orientation="vertical" className="h-4" />
+                <SyncStatus syncState={syncState} peerCount={activePeers.length} />
+              </div>
+              {/* Compact mobile status */}
+              <div className="flex items-center gap-2 sm:hidden">
+                <ConnectionBadge />
+                <SyncStatus syncState={syncState} peerCount={activePeers.length} />
+              </div>
+            </div>
 
-      {/* Mobile status bar - visible only on small screens */}
-      <div className="flex items-center justify-between border-b border-border px-3 py-1.5 sm:hidden">
-        <ConnectionBadge />
-        <SyncStatus syncState={syncState} peerCount={activePeers.length} />
-      </div>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setImportExportOpen(true)}
+                className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+              >
+                <ArrowDownUp className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Import/Export</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPeerPanelOpen(true)}
+                className="gap-1.5 text-xs h-8 px-2 sm:px-3"
+              >
+                <Radio className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Peers</span>
+                {activePeers.length > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+                    {activePeers.length}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </header>
 
-      {/* Main area with sidebar + content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Desktop sidebar - hidden on mobile */}
-        <div className="hidden md:block">
-          {sidebarContent}
-        </div>
-
-        {/* Mobile sidebar as Sheet */}
-        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-          <SheetContent side="left" className="w-64 p-0">
-            <SheetHeader className="sr-only">
-              <SheetTitle>Groups</SheetTitle>
-              <SheetDescription>Filter links by group</SheetDescription>
-            </SheetHeader>
-            {sidebarContent}
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Link input + list */}
           <LinkInput
             groups={groups}
             activeGroupId={activeGroupId}
@@ -196,7 +144,7 @@ export function LinkManager() {
             filterGroupId={activeGroupId}
           />
         </div>
-      </div>
+      </SidebarInset>
 
       <PeerPanel
         open={peerPanelOpen}
@@ -220,6 +168,6 @@ export function LinkManager() {
       />
 
       <Toaster position="bottom-right" />
-    </div>
+    </SidebarProvider>
   )
 }
