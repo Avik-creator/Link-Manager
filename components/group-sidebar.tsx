@@ -30,8 +30,28 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuBadge,
+  SidebarMenuAction,
+  SidebarSeparator,
+  SidebarRail,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   Plus,
   Inbox,
@@ -39,6 +59,8 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Link as LinkIcon,
+  FolderPlus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -52,6 +74,8 @@ interface GroupSidebarProps {
   onAddGroup: (name: string, color: string) => Group
   onUpdateGroup: (id: string, partial: Partial<Group>) => void
   onDeleteGroup: (id: string) => void
+  isLoaded: boolean
+  linkCount: number
 }
 
 export function GroupSidebar({
@@ -64,10 +88,12 @@ export function GroupSidebar({
   onAddGroup,
   onUpdateGroup,
   onDeleteGroup,
+  isLoaded,
+  linkCount,
 }: GroupSidebarProps) {
   const [createOpen, setCreateOpen] = useState(false)
   const [editGroup, setEditGroup] = useState<Group | null>(null)
-  const [deleteGroup, setDeleteGroup] = useState<Group | null>(null)
+  const [deleteGroupState, setDeleteGroupState] = useState<Group | null>(null)
   const [newName, setNewName] = useState("")
   const [newColor, setNewColor] = useState(GROUP_COLORS[0].value)
 
@@ -90,12 +116,12 @@ export function GroupSidebar({
   }
 
   const handleConfirmDelete = () => {
-    if (!deleteGroup) return
-    onDeleteGroup(deleteGroup.id)
-    if (activeGroupId === deleteGroup.id) {
+    if (!deleteGroupState) return
+    onDeleteGroup(deleteGroupState.id)
+    if (activeGroupId === deleteGroupState.id) {
       onSelectGroup("all")
     }
-    setDeleteGroup(null)
+    setDeleteGroupState(null)
   }
 
   const openEdit = (group: Group) => {
@@ -105,124 +131,138 @@ export function GroupSidebar({
   }
 
   return (
-    <>
-      <div className="flex w-56 shrink-0 flex-col border-r border-border bg-muted/20 max-md:w-full max-md:border-r-0">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Groups
-          </span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      {/* App branding header */}
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" className="cursor-default hover:bg-transparent active:bg-transparent">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <LinkIcon className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">LinkDrop</span>
+                <span className="truncate text-xs text-sidebar-foreground/60">
+                  {isLoaded ? `${linkCount} link${linkCount !== 1 ? "s" : ""}` : "Loading..."}
+                </span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {/* Navigation group */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Browse</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeGroupId === null || activeGroupId === "all"}
+                  onClick={() => onSelectGroup("all")}
+                  tooltip="All links"
+                >
+                  <Layers className="size-4" />
+                  <span>All links</span>
+                </SidebarMenuButton>
+                <SidebarMenuBadge>{totalLinks}</SidebarMenuBadge>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={activeGroupId === "ungrouped"}
+                  onClick={() => onSelectGroup("ungrouped")}
+                  tooltip="Ungrouped"
+                >
+                  <Inbox className="size-4" />
+                  <span>Ungrouped</span>
+                </SidebarMenuButton>
+                <SidebarMenuBadge>{ungroupedCount}</SidebarMenuBadge>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* Groups */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Groups</SidebarGroupLabel>
+          <SidebarGroupAction
+            title="Create group"
             onClick={() => {
               setNewName("")
               setNewColor(GROUP_COLORS[0].value)
               setCreateOpen(true)
             }}
-            aria-label="Create group"
           >
-            <Plus className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-
-        {/* Filter list */}
-        <ScrollArea className="flex-1">
-          <div className="flex flex-col gap-0.5 p-2">
-            {/* All links */}
-            <button
-              onClick={() => onSelectGroup("all")}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors",
-                (activeGroupId === null || activeGroupId === "all")
-                  ? "bg-accent text-foreground font-medium"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+            <Plus className="size-4" />
+            <span className="sr-only">Create group</span>
+          </SidebarGroupAction>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {groups.length === 0 && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => {
+                      setNewName("")
+                      setNewColor(GROUP_COLORS[0].value)
+                      setCreateOpen(true)
+                    }}
+                    tooltip="Create your first group"
+                    className="text-sidebar-foreground/50 hover:text-sidebar-foreground"
+                  >
+                    <FolderPlus className="size-4" />
+                    <span>Create a group</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
-            >
-              <Layers className="h-4 w-4 shrink-0" />
-              <span className="flex-1 truncate">All links</span>
-              <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
-                {totalLinks}
-              </Badge>
-            </button>
-
-            {/* Ungrouped */}
-            <button
-              onClick={() => onSelectGroup("ungrouped")}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors",
-                activeGroupId === "ungrouped"
-                  ? "bg-accent text-foreground font-medium"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-              )}
-            >
-              <Inbox className="h-4 w-4 shrink-0" />
-              <span className="flex-1 truncate">Ungrouped</span>
-              <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
-                {ungroupedCount}
-              </Badge>
-            </button>
-
-            {groups.length > 0 && (
-              <div className="mx-3 my-1.5 border-t border-border" />
-            )}
-
-            {/* Group items */}
-            {groups.map((group) => (
-              <div
-                key={group.id}
-                className={cn(
-                  "group flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors",
-                  activeGroupId === group.id
-                    ? "bg-accent text-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                )}
-              >
-                <button
-                  className="flex flex-1 items-center gap-2.5 min-w-0"
-                  onClick={() => onSelectGroup(group.id)}
-                >
-                  <span
-                    className="h-3 w-3 rounded-full shrink-0"
-                    style={{ backgroundColor: group.color }}
-                  />
-                  <span className="flex-1 truncate">{group.name}</span>
-                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+              {groups.map((group) => (
+                <SidebarMenuItem key={group.id}>
+                  <SidebarMenuButton
+                    isActive={activeGroupId === group.id}
+                    onClick={() => onSelectGroup(group.id)}
+                    tooltip={group.name}
+                  >
+                    <span
+                      className="size-3 rounded-full shrink-0"
+                      style={{ backgroundColor: group.color }}
+                    />
+                    <span>{group.name}</span>
+                  </SidebarMenuButton>
+                  <SidebarMenuBadge>
                     {linkCountByGroup[group.id] || 0}
-                  </Badge>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-5 w-5 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-opacity"
-                      aria-label={`Edit ${group.name}`}
-                    >
-                      <MoreHorizontal className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem onClick={() => openEdit(group)}>
-                      <Pencil className="h-4 w-4" />
-                      Rename
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => setDeleteGroup(group)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
+                  </SidebarMenuBadge>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal className="size-4" />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="bottom" align="start" className="w-36">
+                      <DropdownMenuItem onClick={() => openEdit(group)}>
+                        <Pencil className="size-4" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setDeleteGroupState(group)}
+                      >
+                        <Trash2 className="size-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarRail />
 
       {/* Create / Edit Dialog */}
       <Dialog
@@ -304,14 +344,14 @@ export function GroupSidebar({
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteGroup} onOpenChange={(open) => !open && setDeleteGroup(null)}>
+      <AlertDialog open={!!deleteGroupState} onOpenChange={(open) => !open && setDeleteGroupState(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete group?</AlertDialogTitle>
             <AlertDialogDescription>
               This will delete the group{" "}
               <span className="font-medium text-foreground">
-                {deleteGroup?.name}
+                {deleteGroupState?.name}
               </span>
               . All links in this group will become ungrouped. This action syncs
               to all connected peers and cannot be undone.
@@ -328,6 +368,6 @@ export function GroupSidebar({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </Sidebar>
   )
 }
