@@ -5,12 +5,29 @@ import type { Link, Group } from "@/lib/types"
 import { canonicalizeUrl, ensureProtocol } from "@/lib/url"
 
 const DOC_NAME = "linkdrop-crdt-v1"
+const DEVICE_ID_KEY = "linkdrop-device-id"
 
 // ─── Singleton instances ────────────────────────────────────────────────────
 
 let _doc: Y.Doc | null = null
 let _persistence: IndexeddbPersistence | null = null
 let _syncedPromise: Promise<void> | null = null
+let _deviceId: string | null = null
+
+/** Returns a stable device ID persisted in localStorage. */
+export function getDeviceId(): string {
+  if (_deviceId) return _deviceId
+  if (typeof window !== "undefined") {
+    _deviceId = localStorage.getItem(DEVICE_ID_KEY)
+    if (!_deviceId) {
+      _deviceId = nanoid()
+      localStorage.setItem(DEVICE_ID_KEY, _deviceId)
+    }
+  } else {
+    _deviceId = nanoid()
+  }
+  return _deviceId
+}
 
 /** Returns the shared Yjs document singleton. */
 export function getDoc(): Y.Doc {
@@ -85,6 +102,7 @@ export function addLink(url: string, metadata?: Partial<Link>): Link | null {
     favicon: metadata?.favicon ?? "",
     tags: metadata?.tags ?? [],
     groupId: metadata?.groupId,
+    ownerId: getDeviceId(),
     createdAt: now,
     updatedAt: now,
     deleted: false,

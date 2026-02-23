@@ -50,9 +50,11 @@ interface LinkItemProps {
   onDelete: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
   onUpdateLink: (id: string, partial: Partial<Link>) => void
+  deviceId: string
 }
 
-export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink }: LinkItemProps) {
+export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, deviceId }: LinkItemProps) {
+  const isOwner = !link.ownerId || link.ownerId === deviceId
   const [isHovered, setIsHovered] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -219,15 +221,18 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink }
                     </DropdownMenuItem>
                   )}
 
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => setDeleteDialogOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete link
-                  </DropdownMenuItem>
+                  {isOwner && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setDeleteDialogOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete link
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
