@@ -54,7 +54,7 @@ function SheetContent({
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay className="z-40" />
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
@@ -69,6 +69,7 @@ function SheetContent({
             'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
           className,
         )}
+        style={{ pointerEvents: 'auto' }}
         {...props}
       >
         {children}

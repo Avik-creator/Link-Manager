@@ -261,7 +261,7 @@ export function GroupSidebar({
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <SidebarMenuBadge className="group-hover/menu-item:opacity-0 transition-opacity">
+                    <SidebarMenuBadge>
                       {count}
                     </SidebarMenuBadge>
                   </SidebarMenuItem>

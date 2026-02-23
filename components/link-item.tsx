@@ -4,11 +4,10 @@ import React, { useState, useRef, useEffect } from "react"
 import type { Link, Group } from "@/lib/types"
 import { extractHostname, formatRelativeTime } from "@/lib/url"
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -42,9 +41,9 @@ import {
   FolderMinus,
   Pencil,
   FileText,
-  Eye,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface LinkItemProps {
   link: Link
@@ -67,7 +66,6 @@ export function LinkItem({
   const [isHovered, setIsHovered] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [editingDescription, setEditingDescription] = useState(false)
   const [descDraft, setDescDraft] = useState(link.userDescription || "")
   const descRef = useRef<HTMLTextAreaElement>(null)
@@ -106,53 +104,70 @@ export function LinkItem({
           )}
         </div>
 
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-medium text-foreground">
-              {link.title || hostname}
-            </span>
-            {currentGroup && (
-              <span
-                className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
-                style={{
-                  backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
-                  color: currentGroup.color,
-                }}
-              >
-                {currentGroup.name}
+      {/* Preview Hover Card */}
+      <HoverCard openDelay={300} closeDelay={100}>
+        <HoverCardTrigger asChild>
+          <div className="flex-1 min-w-0 cursor-default">
+            <div className="flex items-center gap-2">
+              <span className="truncate text-sm font-medium text-foreground">
+                {link.title || hostname}
               </span>
+              {currentGroup && (
+                <span
+                  className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
+                  style={{
+                    backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
+                    color: currentGroup.color,
+                  }}
+                >
+                  {currentGroup.name}
+                </span>
+              )}
+            </div>
+            <div className="mt-0.5 flex items-center gap-2">
+              <span className="truncate text-xs text-muted-foreground">
+                {link.url}
+              </span>
+              <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
+                {timeAgo}
+              </span>
+            </div>
+            {link.userDescription && !editingDescription && (
+              <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
+                {link.userDescription}
+              </p>
             )}
           </div>
-          <div className="mt-0.5 flex items-center gap-2">
-            <span className="truncate text-xs text-muted-foreground">
+        </HoverCardTrigger>
+        <HoverCardContent
+          align="center"
+          sideOffset={8}
+          className="w-80 p-0 overflow-hidden"
+        >
+          <div className="p-3">
+            <LinkPreviewCard url={link.url} />
+          </div>
+          <div className="flex items-center justify-between border-t border-border px-3 py-2 bg-muted/30">
+            <span className="truncate text-xs text-muted-foreground max-w-[180px]">
               {link.url}
             </span>
-            <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
-              {timeAgo}
-            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 gap-1 text-xs shrink-0"
+              asChild
+            >
+              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                {"Open"}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </Button>
           </div>
-          {link.userDescription && !editingDescription && (
-            <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
-              {link.userDescription}
-            </p>
-          )}
-        </div>
+        </HoverCardContent>
+      </HoverCard>
 
         {/* Actions */}
         <div className="flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-            onClick={(e) => {
-              e.stopPropagation()
-              setPreviewOpen(true)
-            }}
-            aria-label="Preview link"
-          >
-            <Eye className="h-3.5 w-3.5" />
-          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -266,37 +281,6 @@ export function LinkItem({
         </div>
       </div>
 
-      {/* Preview Dialog */}
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="sm:max-w-sm p-0 overflow-hidden gap-0">
-          <DialogTitle className="sr-only">
-            {"Preview: " + (link.title || hostname)}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {"Link preview for " + link.url}
-          </DialogDescription>
-          <div className="p-4">
-            <LinkPreviewCard url={link.url} />
-          </div>
-          <div className="flex items-center justify-between border-t border-border px-4 py-3 bg-muted/30">
-            <span className="truncate text-xs text-muted-foreground max-w-[200px]">
-              {link.url}
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 text-xs shrink-0"
-              asChild
-            >
-              <a href={link.url} target="_blank" rel="noopener noreferrer">
-                {"Open"}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Inline note editor */}
       {editingDescription && (
         <div className="border-b border-border bg-muted/30 px-3 py-2.5 sm:px-5 sm:py-3">
@@ -365,7 +349,13 @@ export function LinkItem({
           <AlertDialogFooter>
             <AlertDialogCancel>{"Cancel"}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => onDelete(link.id)}
+              onClick={() => {
+                onDelete(link.id)
+                toast.success(`"${link.title || hostname}" deleted`, {
+                  description: "Link removed from your collection",
+                  icon: "🗑️",
+                })
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {"Delete"}
