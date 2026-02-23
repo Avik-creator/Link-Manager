@@ -43,6 +43,7 @@ import {
   FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface LinkItemProps {
   link: Link
@@ -348,7 +349,13 @@ export function LinkItem({
           <AlertDialogFooter>
             <AlertDialogCancel>{"Cancel"}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => onDelete(link.id)}
+              onClick={() => {
+                onDelete(link.id)
+                toast.success(`"${link.title || hostname}" deleted`, {
+                  description: "Link removed from your collection",
+                  icon: "🗑️",
+                })
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {"Delete"}
