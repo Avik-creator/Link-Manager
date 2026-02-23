@@ -102,8 +102,8 @@ export function LinkInput({ groups, activeGroupId, onAddLink }: LinkInputProps) 
   )
 
   return (
-    <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-      <div className="relative flex-1">
+    <div className="flex flex-col gap-2 border-b border-border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-2 sm:px-5 sm:py-3">
+      <div className="relative flex-1 min-w-0">
         <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           ref={inputRef}
@@ -125,42 +125,44 @@ export function LinkInput({ groups, activeGroupId, onAddLink }: LinkInputProps) 
         )}
       </div>
 
-      {groups.length > 0 && (
-        <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-          <SelectTrigger className="w-36 shrink-0 text-xs" size="sm">
-            <SelectValue placeholder="No group" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">
-              <span className="flex items-center gap-2">
-                <Inbox className="h-3.5 w-3.5 text-muted-foreground" />
-                No group
-              </span>
-            </SelectItem>
-            {groups.map((group) => (
-              <SelectItem key={group.id} value={group.id}>
+      <div className="flex items-center gap-2">
+        {groups.length > 0 && (
+          <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+            <SelectTrigger className="w-full sm:w-36 shrink-0 text-xs" size="sm">
+              <SelectValue placeholder="No group" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">
                 <span className="flex items-center gap-2">
-                  <span
-                    className="h-2.5 w-2.5 rounded-full shrink-0"
-                    style={{ backgroundColor: group.color }}
-                  />
-                  {group.name}
+                  <Inbox className="h-3.5 w-3.5 text-muted-foreground" />
+                  No group
                 </span>
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+              {groups.map((group) => (
+                <SelectItem key={group.id} value={group.id}>
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: group.color }}
+                    />
+                    {group.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
-      <Button
-        onClick={handleSubmit}
-        size="icon"
-        disabled={!value.trim()}
-        aria-label="Add link"
-        className="shrink-0"
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
+        <Button
+          onClick={handleSubmit}
+          size="icon"
+          disabled={!value.trim()}
+          aria-label="Add link"
+          className="shrink-0"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }

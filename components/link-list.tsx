@@ -90,9 +90,9 @@ export function LinkList({
   if (filteredLinks.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <div className="flex flex-col items-center gap-4 px-8 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-            <LinkIcon className="h-8 w-8 text-muted-foreground" />
+        <div className="flex flex-col items-center gap-4 px-6 text-center sm:px-8">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted sm:h-16 sm:w-16">
+            <LinkIcon className="h-6 w-6 text-muted-foreground sm:h-8 sm:w-8" />
           </div>
           <div>
             <h3 className="text-sm font-medium text-foreground">
@@ -179,7 +179,7 @@ function GroupCollapsibleSection({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex w-full items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 transition-colors hover:bg-muted/50">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 border-b border-border bg-muted/30 px-3 py-2 transition-colors hover:bg-muted/50 sm:px-5">
         <ChevronRight
           className={cn(
             "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform",
@@ -225,7 +225,7 @@ function UngroupedSection({
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex w-full items-center gap-2 border-b border-border bg-muted/30 px-5 py-2 transition-colors hover:bg-muted/50">
+      <CollapsibleTrigger className="flex w-full items-center gap-2 border-b border-border bg-muted/30 px-3 py-2 transition-colors hover:bg-muted/50 sm:px-5">
         <ChevronRight
           className={cn(
             "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform",

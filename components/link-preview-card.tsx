@@ -21,7 +21,7 @@ export function LinkPreviewCard({ url }: LinkPreviewCardProps) {
 
   if (isLoading) {
     return (
-      <div className="flex w-72 flex-col gap-3">
+      <div className="flex w-full max-w-72 flex-col gap-3">
         <Skeleton className="h-36 w-full rounded-md" />
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="h-3 w-full" />
@@ -32,7 +32,7 @@ export function LinkPreviewCard({ url }: LinkPreviewCardProps) {
 
   if (!preview || (!preview.title && !preview.description && !preview.image)) {
     return (
-      <div className="flex w-72 flex-col items-center gap-2 py-4">
+      <div className="flex w-full max-w-72 flex-col items-center gap-2 py-4">
         <Globe className="h-8 w-8 text-muted-foreground" />
         <p className="text-xs text-muted-foreground">No preview available</p>
       </div>
@@ -40,7 +40,7 @@ export function LinkPreviewCard({ url }: LinkPreviewCardProps) {
   }
 
   return (
-    <div className="flex w-72 flex-col gap-2.5">
+    <div className="flex w-full max-w-72 flex-col gap-2.5">
       {preview.image && !imageError && (
         <div className="relative h-36 w-full overflow-hidden rounded-md bg-muted">
           {/* eslint-disable-next-line @next/next/no-img-element */}
