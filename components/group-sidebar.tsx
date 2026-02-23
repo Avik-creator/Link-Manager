@@ -38,7 +38,6 @@ import {
   SidebarGroupAction,
   SidebarGroupContent,
   SidebarHeader,
-  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -46,7 +45,13 @@ import {
   SidebarMenuAction,
   SidebarSeparator,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   Plus,
   Inbox,
@@ -55,6 +60,7 @@ import {
   Pencil,
   Trash2,
   Link as LinkIcon,
+  FolderPlus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -196,19 +202,20 @@ export function GroupSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               {groups.length === 0 && (
-                <div className="px-2 py-3 text-center">
-                  <p className="text-xs text-sidebar-foreground/50">No groups yet</p>
-                  <button
+                <SidebarMenuItem>
+                  <SidebarMenuButton
                     onClick={() => {
                       setNewName("")
                       setNewColor(GROUP_COLORS[0].value)
                       setCreateOpen(true)
                     }}
-                    className="mt-1 text-xs text-sidebar-primary hover:underline"
+                    tooltip="Create your first group"
+                    className="text-sidebar-foreground/50 hover:text-sidebar-foreground"
                   >
-                    Create your first group
-                  </button>
-                </div>
+                    <FolderPlus className="size-4" />
+                    <span>Create a group</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
               {groups.map((group) => (
                 <SidebarMenuItem key={group.id}>
