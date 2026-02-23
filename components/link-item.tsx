@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import type { Link, Group } from "@/lib/types"
 import { extractHostname, formatRelativeTime } from "@/lib/url"
 import {
@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { LinkPreviewCard } from "@/components/link-preview-card"
 import {
   Trash2,
@@ -38,6 +39,8 @@ import {
   MoreHorizontal,
   FolderInput,
   FolderMinus,
+  Pencil,
+  FileText,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -46,15 +49,25 @@ interface LinkItemProps {
   groups: Group[]
   onDelete: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
+  onUpdateLink: (id: string, partial: Partial<Link>) => void
 }
 
-export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProps) {
+export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink }: LinkItemProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [editingDescription, setEditingDescription] = useState(false)
+  const [descDraft, setDescDraft] = useState(link.userDescription || "")
+  const descRef = useRef<HTMLTextAreaElement>(null)
   const hostname = extractHostname(link.url)
   const timeAgo = formatRelativeTime(link.createdAt)
   const currentGroup = groups.find((g) => g.id === link.groupId)
+
+  useEffect(() => {
+    if (editingDescription && descRef.current) {
+      descRef.current.focus()
+    }
+  }, [editingDescription])
 
   return (
     <>
@@ -109,6 +122,11 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
                   {timeAgo}
                 </span>
               </div>
+              {link.userDescription && !editingDescription && (
+                <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
+                  {link.userDescription}
+                </p>
+              )}
             </div>
 
             {/* Actions -- always visible on touch, hover reveal on desktop */}
@@ -145,6 +163,19 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel className="text-xs">Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setDescDraft(link.userDescription || "")
+                      setEditingDescription(true)
+                    }}
+                  >
+                    {link.userDescription ? (
+                      <><Pencil className="h-4 w-4" /> Edit note</>
+                    ) : (
+                      <><FileText className="h-4 w-4" /> Add note</>
+                    )}
+                  </DropdownMenuItem>
 
                   {groups.length > 0 && (
                     <DropdownMenuSub>
@@ -206,6 +237,54 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
           <LinkPreviewCard url={link.url} />
         </HoverCardContent>
       </HoverCard>
+
+      {/* Inline note editor */}
+      {editingDescription && (
+        <div className="border-b border-border bg-muted/30 px-3 py-2.5 sm:px-5 sm:py-3">
+          <Textarea
+            ref={descRef}
+            value={descDraft}
+            onChange={(e) => setDescDraft(e.target.value)}
+            placeholder="Write a note about this link..."
+            className="min-h-[56px] resize-none bg-background text-sm border-border"
+            rows={2}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                onUpdateLink(link.id, { userDescription: descDraft.trim() || undefined })
+                setEditingDescription(false)
+              }
+              if (e.key === "Escape") {
+                setEditingDescription(false)
+              }
+            }}
+          />
+          <div className="mt-2 flex items-center justify-between">
+            <p className="text-[11px] text-muted-foreground">
+              {"Ctrl+Enter to save \u00B7 Esc to cancel"}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs"
+                onClick={() => setEditingDescription(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  onUpdateLink(link.id, { userDescription: descDraft.trim() || undefined })
+                  setEditingDescription(false)
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

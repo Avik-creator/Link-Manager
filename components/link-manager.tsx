@@ -29,6 +29,7 @@ export function LinkManager() {
     links,
     groups,
     addLink,
+    updateLink,
     deleteLink,
     moveToGroup,
     addGroup,
@@ -190,6 +191,7 @@ export function LinkManager() {
             isLoaded={isLoaded}
             onDeleteLink={deleteLink}
             onMoveToGroup={moveToGroup}
+            onUpdateLink={updateLink}
             filterGroupId={activeGroupId}
           />
         </div>

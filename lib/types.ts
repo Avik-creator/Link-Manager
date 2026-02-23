@@ -5,6 +5,8 @@ export interface Link {
   canonicalUrl: string
   title?: string
   description?: string
+  /** User-written note describing what the link is for */
+  userDescription?: string
   image?: string
   favicon?: string
   tags: string[]
