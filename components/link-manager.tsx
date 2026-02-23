@@ -1,56 +1,84 @@
-'use client'
+"use client"
 
-import { useState, useCallback } from 'react'
-import { useLinks } from '@/hooks/use-links'
-import { usePeerSync } from '@/hooks/use-peer-sync'
-import { useImportExport } from '@/hooks/use-import-export'
-import { LinkInput } from '@/components/link-input'
-import { LinkList } from '@/components/link-list'
-import { PeerPanel } from '@/components/peer-panel'
-import { ImportExportModal } from '@/components/import-export-modal'
-import { ConnectionBadge } from '@/components/connection-badge'
-import { SyncStatus } from '@/components/sync-status'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Radio, ArrowDownUp, Link as LinkIcon } from 'lucide-react'
-import { Toaster } from 'sonner'
+import { useState, useCallback, useMemo } from "react"
+import { useLinks } from "@/hooks/use-links"
+import { usePeerSync } from "@/hooks/use-peer-sync"
+import { useImportExport } from "@/hooks/use-import-export"
+import { LinkInput } from "@/components/link-input"
+import { LinkList } from "@/components/link-list"
+import { GroupSidebar } from "@/components/group-sidebar"
+import { PeerPanel } from "@/components/peer-panel"
+import { ImportExportModal } from "@/components/import-export-modal"
+import { ConnectionBadge } from "@/components/connection-badge"
+import { SyncStatus } from "@/components/sync-status"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { Toaster } from "@/components/ui/sonner"
+import { Radio, ArrowDownUp, Link as LinkIcon } from "lucide-react"
 
 export function LinkManager() {
-  const { links, addLink, deleteLink, isLoaded } = useLinks()
-  const { peerId, connections, syncState, connect, disconnect, forceSync } = usePeerSync()
-  const { exportData, importData, importSummary, isImporting } = useImportExport()
+  const {
+    links,
+    groups,
+    addLink,
+    deleteLink,
+    moveToGroup,
+    addGroup,
+    updateGroup,
+    deleteGroup,
+    isLoaded,
+  } = useLinks()
+  const { peerId, connections, syncState, connect, disconnect, forceSync } =
+    usePeerSync()
+  const { exportData, importData, importSummary, isImporting } =
+    useImportExport()
 
   const [peerPanelOpen, setPeerPanelOpen] = useState(false)
   const [importExportOpen, setImportExportOpen] = useState(false)
+  const [activeGroupId, setActiveGroupId] = useState<string | null>("all")
 
-  const activePeers = connections.filter((c) => c.status === 'connected')
+  const activePeers = connections.filter((c) => c.status === "connected")
 
   const handleAddLink = useCallback(
-    (url: string) => {
-      return addLink(url)
+    (url: string, metadata?: Partial<{ groupId: string }>) => {
+      return addLink(url, metadata)
     },
     [addLink]
   )
 
+  const { linkCountByGroup, ungroupedCount } = useMemo(() => {
+    const counts: Record<string, number> = {}
+    let ungrouped = 0
+    for (const link of links) {
+      if (link.groupId) {
+        counts[link.groupId] = (counts[link.groupId] || 0) + 1
+      } else {
+        ungrouped++
+      }
+    }
+    return { linkCountByGroup: counts, ungroupedCount: ungrouped }
+  }, [links])
+
   return (
     <div className="flex h-dvh flex-col bg-background">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-border px-5 py-3">
+      <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
             <LinkIcon className="h-4 w-4 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-foreground leading-none">
+            <h1 className="text-sm font-semibold leading-none text-foreground">
               LinkDrop
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {isLoaded ? `${links.length} link${links.length !== 1 ? 's' : ''}` : 'Loading...'}
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {isLoaded
+                ? `${links.length} link${links.length !== 1 ? "s" : ""}`
+                : "Loading..."}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ConnectionBadge />
           <Separator orientation="vertical" className="h-4" />
           <SyncStatus syncState={syncState} peerCount={activePeers.length} />
@@ -59,7 +87,7 @@ export function LinkManager() {
             size="sm"
             variant="ghost"
             onClick={() => setImportExportOpen(true)}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+            className="gap-1.5 text-xs"
           >
             <ArrowDownUp className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Import/Export</span>
@@ -81,13 +109,36 @@ export function LinkManager() {
         </div>
       </header>
 
-      {/* Link Input */}
-      <LinkInput onAddLink={handleAddLink} />
+      <div className="flex flex-1 overflow-hidden">
+        <GroupSidebar
+          groups={groups}
+          linkCountByGroup={linkCountByGroup}
+          totalLinks={links.length}
+          ungroupedCount={ungroupedCount}
+          activeGroupId={activeGroupId}
+          onSelectGroup={setActiveGroupId}
+          onAddGroup={addGroup}
+          onUpdateGroup={updateGroup}
+          onDeleteGroup={deleteGroup}
+        />
 
-      {/* Link List */}
-      <LinkList links={links} isLoaded={isLoaded} onDeleteLink={deleteLink} />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <LinkInput
+            groups={groups}
+            activeGroupId={activeGroupId}
+            onAddLink={handleAddLink}
+          />
+          <LinkList
+            links={links}
+            groups={groups}
+            isLoaded={isLoaded}
+            onDeleteLink={deleteLink}
+            onMoveToGroup={moveToGroup}
+            filterGroupId={activeGroupId}
+          />
+        </div>
+      </div>
 
-      {/* Peer Panel */}
       <PeerPanel
         open={peerPanelOpen}
         onOpenChange={setPeerPanelOpen}
@@ -99,7 +150,6 @@ export function LinkManager() {
         onForceSync={forceSync}
       />
 
-      {/* Import/Export Modal */}
       <ImportExportModal
         open={importExportOpen}
         onOpenChange={setImportExportOpen}
@@ -110,12 +160,7 @@ export function LinkManager() {
         linkCount={links.length}
       />
 
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          className: 'bg-card text-card-foreground border-border',
-        }}
-      />
+      <Toaster position="bottom-right" />
     </div>
   )
 }

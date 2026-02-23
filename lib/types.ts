@@ -8,10 +8,33 @@ export interface Link {
   image?: string
   favicon?: string
   tags: string[]
+  groupId?: string
   createdAt: number
   updatedAt: number
   deleted: boolean
 }
+
+// ─── Group entity (stored in CRDT Y.Map as JSON) ───────────────────────────
+export interface Group {
+  id: string
+  name: string
+  color: string
+  createdAt: number
+  updatedAt: number
+  deleted: boolean
+}
+
+export const GROUP_COLORS = [
+  { name: "Red", value: "oklch(0.637 0.237 25.331)" },
+  { name: "Orange", value: "oklch(0.705 0.213 47.604)" },
+  { name: "Amber", value: "oklch(0.795 0.184 86.047)" },
+  { name: "Green", value: "oklch(0.723 0.219 149.579)" },
+  { name: "Teal", value: "oklch(0.704 0.14 182.503)" },
+  { name: "Blue", value: "oklch(0.623 0.214 259.815)" },
+  { name: "Indigo", value: "oklch(0.585 0.233 277.117)" },
+  { name: "Purple", value: "oklch(0.627 0.265 303.9)" },
+  { name: "Pink", value: "oklch(0.656 0.241 354.308)" },
+] as const
 
 // ─── OG metadata preview (cached in IndexedDB) ─────────────────────────────
 export interface LinkPreview {

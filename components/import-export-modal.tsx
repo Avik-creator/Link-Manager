@@ -1,25 +1,26 @@
-'use client'
+"use client"
 
-import { useRef } from 'react'
+import { useRef } from "react"
+import type { ImportSummary } from "@/lib/types"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Download, Upload, FileJson, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { Download, Upload, FileJson, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface ImportExportModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onExport: () => void
-  onImport: (file: File) => Promise<{ totalBefore: number; totalAfter: number; newLinks: number } | null>
+  onImport: (file: File) => Promise<ImportSummary | null>
   isImporting: boolean
-  importSummary: { totalBefore: number; totalAfter: number; newLinks: number } | null
+  importSummary: ImportSummary | null
   linkCount: number
 }
 
@@ -36,7 +37,7 @@ export function ImportExportModal({
 
   const handleExport = () => {
     onExport()
-    toast.success('Export complete', {
+    toast.success("Export complete", {
       description: `Exported ${linkCount} links.`,
     })
   }
@@ -47,18 +48,18 @@ export function ImportExportModal({
 
     const result = await onImport(file)
     if (result) {
-      toast.success('Import complete', {
+      toast.success("Import complete", {
         description: `${result.newLinks} new links merged. Total: ${result.totalAfter}`,
       })
     } else {
-      toast.error('Import failed', {
-        description: 'Invalid export file format.',
+      toast.error("Import failed", {
+        description: "Invalid export file format.",
       })
     }
 
-    // Reset input
+    // Reset file input so the same file can be re-imported
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = ""
     }
   }
 
@@ -68,14 +69,15 @@ export function ImportExportModal({
         <DialogHeader>
           <DialogTitle>Import / Export</DialogTitle>
           <DialogDescription>
-            Export your links as a JSON file or import links from another device. Imports merge via CRDT — no data is lost.
+            Export your links as a JSON file or import links from another device.
+            Imports merge via CRDT -- no data is lost.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
           {/* Export */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Export
             </label>
             <div className="flex items-center gap-3 rounded-md border border-border p-3">
@@ -84,7 +86,7 @@ export function ImportExportModal({
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">
-                  {linkCount} link{linkCount !== 1 ? 's' : ''}
+                  {linkCount} link{linkCount !== 1 ? "s" : ""}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Full CRDT state, can be merged on any device
@@ -101,7 +103,7 @@ export function ImportExportModal({
 
           {/* Import */}
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Import
             </label>
             <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-3">
@@ -143,8 +145,9 @@ export function ImportExportModal({
           {importSummary && (
             <div className="rounded-md bg-muted/50 p-3">
               <p className="text-xs text-muted-foreground">
-                Import result: {importSummary.newLinks} new link{importSummary.newLinks !== 1 ? 's' : ''} added.
-                Total: {importSummary.totalAfter} links.
+                Import result: {importSummary.newLinks} new link
+                {importSummary.newLinks !== 1 ? "s" : ""} added. Total:{" "}
+                {importSummary.totalAfter} links.
               </p>
             </div>
           )}
