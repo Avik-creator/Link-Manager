@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import type { Link, Group } from "@/lib/types"
 import { extractHostname, formatRelativeTime } from "@/lib/url"
 import {
@@ -45,7 +45,6 @@ import {
   Eye,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden"
 
 interface LinkItemProps {
   link: Link
@@ -56,7 +55,14 @@ interface LinkItemProps {
   deviceId: string
 }
 
-export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, deviceId }: LinkItemProps) {
+export function LinkItem({
+  link,
+  groups,
+  onDelete,
+  onMoveToGroup,
+  onUpdateLink,
+  deviceId,
+}: LinkItemProps) {
   const isOwner = !link.ownerId || link.ownerId === deviceId
   const [isHovered, setIsHovered] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
@@ -76,7 +82,7 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
   }, [editingDescription])
 
   return (
-    <>
+    <React.Fragment>
       <div
         className={cn(
           "group flex cursor-default items-center gap-2 border-b border-border px-3 py-2.5 transition-colors sm:gap-3 sm:px-5 sm:py-3",
@@ -85,181 +91,190 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-            {/* Favicon */}
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted sm:h-9 sm:w-9">
-              {link.favicon && !faviconError ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={link.favicon}
-                  alt=""
-                  className="h-4 w-4 rounded-sm"
-                  onError={() => setFaviconError(true)}
-                />
-              ) : (
-                <Globe className="h-4 w-4 text-muted-foreground" />
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-sm font-medium text-foreground">
-                  {link.title || hostname}
-                </span>
-                {currentGroup && (
-                  <span
-                    className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
-                    style={{
-                      backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
-                      color: currentGroup.color,
-                    }}
-                  >
-                    {currentGroup.name}
-                  </span>
-                )}
-              </div>
-              <div className="mt-0.5 flex items-center gap-2">
-                <span className="truncate text-xs text-muted-foreground">
-                  {link.url}
-                </span>
-                <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
-                  {timeAgo}
-                </span>
-              </div>
-              {link.userDescription && !editingDescription && (
-                <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
-                  {link.userDescription}
-                </p>
-              )}
-            </div>
-
-            {/* Actions -- always visible on touch, hover reveal on desktop */}
-            <div className="flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setPreviewOpen(true)
-                }}
-                aria-label="Preview link"
-              >
-                <Eye className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                asChild
-              >
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Open link in new tab"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Link actions"
-                  >
-                    <MoreHorizontal className="h-3.5 w-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel className="text-xs">Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setDescDraft(link.userDescription || "")
-                      setEditingDescription(true)
-                    }}
-                  >
-                    {link.userDescription ? (
-                      <><Pencil className="h-4 w-4" /> Edit note</>
-                    ) : (
-                      <><FileText className="h-4 w-4" /> Add note</>
-                    )}
-                  </DropdownMenuItem>
-
-                  {groups.length > 0 && (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <FolderInput className="h-4 w-4" />
-                        Move to group
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="w-44">
-                        {groups.map((group) => (
-                          <DropdownMenuItem
-                            key={group.id}
-                            onClick={() => onMoveToGroup(link.id, group.id)}
-                          >
-                            <span
-                              className="h-2.5 w-2.5 rounded-full shrink-0"
-                              style={{ backgroundColor: group.color }}
-                            />
-                            <span className="truncate">{group.name}</span>
-                            {link.groupId === group.id && (
-                              <span className="ml-auto text-xs text-muted-foreground">Current</span>
-                            )}
-                          </DropdownMenuItem>
-                        ))}
-                        {link.groupId && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onMoveToGroup(link.id, undefined)}>
-                              <FolderMinus className="h-4 w-4" />
-                              Remove from group
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                  )}
-
-                  {link.groupId && groups.length === 0 && (
-                    <DropdownMenuItem onClick={() => onMoveToGroup(link.id, undefined)}>
-                      <FolderMinus className="h-4 w-4" />
-                      Remove from group
-                    </DropdownMenuItem>
-                  )}
-
-                  {isOwner && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => setDeleteDialogOpen(true)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete link
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+        {/* Favicon */}
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted sm:h-9 sm:w-9">
+          {link.favicon && !faviconError ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={link.favicon}
+              alt=""
+              className="h-4 w-4 rounded-sm"
+              onError={() => setFaviconError(true)}
+            />
+          ) : (
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          )}
         </div>
 
-      {/* Preview Dialog -- centered, proper animations */}
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-medium text-foreground">
+              {link.title || hostname}
+            </span>
+            {currentGroup && (
+              <span
+                className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
+                style={{
+                  backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
+                  color: currentGroup.color,
+                }}
+              >
+                {currentGroup.name}
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 flex items-center gap-2">
+            <span className="truncate text-xs text-muted-foreground">
+              {link.url}
+            </span>
+            <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
+              {timeAgo}
+            </span>
+          </div>
+          {link.userDescription && !editingDescription && (
+            <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
+              {link.userDescription}
+            </p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            onClick={(e) => {
+              e.stopPropagation()
+              setPreviewOpen(true)
+            }}
+            aria-label="Preview link"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            asChild
+          >
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open link in new tab"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Link actions"
+              >
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="text-xs">Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setDescDraft(link.userDescription || "")
+                  setEditingDescription(true)
+                }}
+              >
+                {link.userDescription ? (
+                  <>
+                    <Pencil className="h-4 w-4" />
+                    {"Edit note"}
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-4 w-4" />
+                    {"Add note"}
+                  </>
+                )}
+              </DropdownMenuItem>
+              {groups.length > 0 && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <FolderInput className="h-4 w-4" />
+                    {"Move to group"}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-44">
+                    {groups.map((group) => (
+                      <DropdownMenuItem
+                        key={group.id}
+                        onClick={() => onMoveToGroup(link.id, group.id)}
+                      >
+                        <span
+                          className="h-2.5 w-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <span className="truncate">{group.name}</span>
+                        {link.groupId === group.id && (
+                          <span className="ml-auto text-xs text-muted-foreground">
+                            {"Current"}
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                    {link.groupId && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => onMoveToGroup(link.id, undefined)}
+                        >
+                          <FolderMinus className="h-4 w-4" />
+                          {"Remove from group"}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
+              {link.groupId && groups.length === 0 && (
+                <DropdownMenuItem
+                  onClick={() => onMoveToGroup(link.id, undefined)}
+                >
+                  <FolderMinus className="h-4 w-4" />
+                  {"Remove from group"}
+                </DropdownMenuItem>
+              )}
+              {isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {"Delete link"}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-sm p-0 overflow-hidden gap-0">
-          <VisuallyHidden.Root>
-            <DialogTitle>Preview: {link.title || hostname}</DialogTitle>
-            <DialogDescription>Link preview for {link.url}</DialogDescription>
-          </VisuallyHidden.Root>
+          <DialogTitle className="sr-only">
+            {"Preview: " + (link.title || hostname)}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {"Link preview for " + link.url}
+          </DialogDescription>
           <div className="p-4">
             <LinkPreviewCard url={link.url} />
           </div>
@@ -273,12 +288,8 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
               className="h-7 gap-1.5 text-xs shrink-0"
               asChild
             >
-              <a
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open
+              <a href={link.url} target="_blank" rel="noopener noreferrer">
+                {"Open"}
                 <ExternalLink className="h-3 w-3" />
               </a>
             </Button>
@@ -298,7 +309,9 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
             rows={2}
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                onUpdateLink(link.id, { userDescription: descDraft.trim() || undefined })
+                onUpdateLink(link.id, {
+                  userDescription: descDraft.trim() || undefined,
+                })
                 setEditingDescription(false)
               }
               if (e.key === "Escape") {
@@ -317,17 +330,19 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
                 className="h-7 text-xs"
                 onClick={() => setEditingDescription(false)}
               >
-                Cancel
+                {"Cancel"}
               </Button>
               <Button
                 size="sm"
                 className="h-7 text-xs"
                 onClick={() => {
-                  onUpdateLink(link.id, { userDescription: descDraft.trim() || undefined })
+                  onUpdateLink(link.id, {
+                    userDescription: descDraft.trim() || undefined,
+                  })
                   setEditingDescription(false)
                 }}
               >
-                Save
+                {"Save"}
               </Button>
             </div>
           </div>
@@ -338,24 +353,26 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this link?</AlertDialogTitle>
+            <AlertDialogTitle>{"Delete this link?"}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently remove{" "}
-              <span className="font-medium text-foreground">{link.title || hostname}</span>{" "}
-              from your collection. This action syncs to all connected peers and cannot be undone.
+              {"This will permanently remove "}
+              <span className="font-medium text-foreground">
+                {link.title || hostname}
+              </span>
+              {" from your collection. This action syncs to all connected peers and cannot be undone."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{"Cancel"}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onDelete(link.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {"Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </React.Fragment>
   )
 }
