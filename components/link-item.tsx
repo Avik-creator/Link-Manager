@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect } from "react"
-import type { Link, Group } from "@/lib/types"
-import { extractHostname, formatRelativeTime } from "@/lib/url"
+import React, { useState, useRef, useEffect } from "react";
+import type { Link, Group } from "@/lib/types";
+import { extractHostname, formatRelativeTime } from "@/lib/url";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card"
+} from "@/components/ui/hover-card";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -18,7 +18,8 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-} from "@/components/ui/dropdown-menu"
+  DropdownMenuPortal,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,10 +29,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { LinkPreviewCard } from "@/components/link-preview-card"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { LinkPreviewCard } from "@/components/link-preview-card";
 import {
   Trash2,
   ExternalLink,
@@ -41,17 +42,17 @@ import {
   FolderMinus,
   Pencil,
   FileText,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface LinkItemProps {
-  link: Link
-  groups: Group[]
-  onDelete: (id: string) => void
-  onMoveToGroup: (linkId: string, groupId: string | undefined) => void
-  onUpdateLink: (id: string, partial: Partial<Link>) => void
-  deviceId: string
+  link: Link;
+  groups: Group[];
+  onDelete: (id: string) => void;
+  onMoveToGroup: (linkId: string, groupId: string | undefined) => void;
+  onUpdateLink: (id: string, partial: Partial<Link>) => void;
+  deviceId: string;
 }
 
 export function LinkItem({
@@ -62,29 +63,29 @@ export function LinkItem({
   onUpdateLink,
   deviceId,
 }: LinkItemProps) {
-  const isOwner = !link.ownerId || link.ownerId === deviceId
-  const [isHovered, setIsHovered] = useState(false)
-  const [faviconError, setFaviconError] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [editingDescription, setEditingDescription] = useState(false)
-  const [descDraft, setDescDraft] = useState(link.userDescription || "")
-  const descRef = useRef<HTMLTextAreaElement>(null)
-  const hostname = extractHostname(link.url)
-  const timeAgo = formatRelativeTime(link.createdAt)
-  const currentGroup = groups.find((g) => g.id === link.groupId)
+  const isOwner = !link.ownerId || link.ownerId === deviceId;
+  const [isHovered, setIsHovered] = useState(false);
+  const [faviconError, setFaviconError] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descDraft, setDescDraft] = useState(link.userDescription || "");
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  const hostname = extractHostname(link.url);
+  const timeAgo = formatRelativeTime(link.createdAt);
+  const currentGroup = groups.find((g) => g.id === link.groupId);
 
   useEffect(() => {
     if (editingDescription && descRef.current) {
-      descRef.current.focus()
+      descRef.current.focus();
     }
-  }, [editingDescription])
+  }, [editingDescription]);
 
   return (
     <React.Fragment>
       <div
         className={cn(
           "group flex cursor-default items-center gap-2 border-b border-border px-3 py-2.5 transition-colors sm:gap-3 sm:px-5 sm:py-3",
-          isHovered && "bg-accent/60"
+          isHovered && "bg-accent/60",
         )}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -104,67 +105,67 @@ export function LinkItem({
           )}
         </div>
 
-      {/* Preview Hover Card */}
-      <HoverCard openDelay={300} closeDelay={100}>
-        <HoverCardTrigger asChild>
-          <div className="flex-1 min-w-0 cursor-default">
-            <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-medium text-foreground">
-                {link.title || hostname}
-              </span>
-              {currentGroup && (
-                <span
-                  className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
-                  style={{
-                    backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
-                    color: currentGroup.color,
-                  }}
-                >
-                  {currentGroup.name}
+        {/* Preview Hover Card */}
+        <HoverCard openDelay={300} closeDelay={100}>
+          <HoverCardTrigger asChild>
+            <div className="flex-1 min-w-0 cursor-default">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-sm font-medium text-foreground">
+                  {link.title || hostname}
                 </span>
+                {currentGroup && (
+                  <span
+                    className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
+                    style={{
+                      backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
+                      color: currentGroup.color,
+                    }}
+                  >
+                    {currentGroup.name}
+                  </span>
+                )}
+              </div>
+              <div className="mt-0.5 flex items-center gap-2">
+                <span className="truncate text-xs text-muted-foreground">
+                  {link.url}
+                </span>
+                <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
+                  {timeAgo}
+                </span>
+              </div>
+              {link.userDescription && !editingDescription && (
+                <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
+                  {link.userDescription}
+                </p>
               )}
             </div>
-            <div className="mt-0.5 flex items-center gap-2">
-              <span className="truncate text-xs text-muted-foreground">
+          </HoverCardTrigger>
+          <HoverCardContent
+            align="center"
+            sideOffset={8}
+            className="w-80 p-0 overflow-hidden"
+          >
+            <div className="p-3">
+              <LinkPreviewCard url={link.url} />
+            </div>
+            <div className="flex items-center justify-between border-t border-border px-3 py-2 bg-muted/30">
+              <span className="truncate text-xs text-muted-foreground max-w-45">
                 {link.url}
               </span>
-              <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
-                {timeAgo}
-              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 gap-1 text-xs shrink-0"
+                asChild
+              >
+                <a href={link.url} target="_blank" rel="noopener noreferrer">
+                  {"Open"}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </Button>
             </div>
-            {link.userDescription && !editingDescription && (
-              <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed italic">
-                {link.userDescription}
-              </p>
-            )}
-          </div>
-        </HoverCardTrigger>
-        <HoverCardContent
-          align="center"
-          sideOffset={8}
-          className="w-80 p-0 overflow-hidden"
-        >
-          <div className="p-3">
-            <LinkPreviewCard url={link.url} />
-          </div>
-          <div className="flex items-center justify-between border-t border-border px-3 py-2 bg-muted/30">
-            <span className="truncate text-xs text-muted-foreground max-w-[180px]">
-              {link.url}
-            </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 gap-1 text-xs shrink-0"
-              asChild
-            >
-              <a href={link.url} target="_blank" rel="noopener noreferrer">
-                {"Open"}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            </Button>
-          </div>
-        </HoverCardContent>
-      </HoverCard>
+          </HoverCardContent>
+        </HoverCard>
 
         {/* Actions */}
         <div className="flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
@@ -202,8 +203,8 @@ export function LinkItem({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  setDescDraft(link.userDescription || "")
-                  setEditingDescription(true)
+                  setDescDraft(link.userDescription || "");
+                  setEditingDescription(true);
                 }}
               >
                 {link.userDescription ? (
@@ -224,41 +225,58 @@ export function LinkItem({
                     <FolderInput className="h-4 w-4" />
                     {"Move to group"}
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-44">
-                    {groups.map((group) => (
-                      <DropdownMenuItem
-                        key={group.id}
-                        onClick={() => onMoveToGroup(link.id, group.id)}
-                      >
-                        <span
-                          className="h-2.5 w-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: group.color }}
-                        />
-                        <span className="truncate">{group.name}</span>
-                        {link.groupId === group.id && (
-                          <span className="ml-auto text-xs text-muted-foreground">
-                            {"Current"}
-                          </span>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                    {link.groupId && (
-                      <>
-                        <DropdownMenuSeparator />
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent className="w-44" sideOffset={4}>
+                      {groups.map((group) => (
                         <DropdownMenuItem
-                          onClick={() => onMoveToGroup(link.id, undefined)}
+                          key={group.id}
+                          onSelect={() => {
+                            onMoveToGroup(link.id, group.id);
+                            toast.success(`Moved to "${group.name}"`, {
+                              icon: "📁",
+                            });
+                          }}
                         >
-                          <FolderMinus className="h-4 w-4" />
-                          {"Remove from group"}
+                          <span
+                            className="h-2.5 w-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: group.color }}
+                          />
+                          <span className="truncate">{group.name}</span>
+                          {link.groupId === group.id && (
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {"Current"}
+                            </span>
+                          )}
                         </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuSubContent>
+                      ))}
+                      {link.groupId && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              onMoveToGroup(link.id, undefined);
+                              toast.success("Removed from group", {
+                                icon: "📂",
+                              });
+                            }}
+                          >
+                            <FolderMinus className="h-4 w-4" />
+                            {"Remove from group"}
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
                 </DropdownMenuSub>
               )}
               {link.groupId && groups.length === 0 && (
                 <DropdownMenuItem
-                  onClick={() => onMoveToGroup(link.id, undefined)}
+                  onSelect={() => {
+                    onMoveToGroup(link.id, undefined);
+                    toast.success("Removed from group", {
+                      icon: "📂",
+                    });
+                  }}
                 >
                   <FolderMinus className="h-4 w-4" />
                   {"Remove from group"}
@@ -295,11 +313,11 @@ export function LinkItem({
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 onUpdateLink(link.id, {
                   userDescription: descDraft.trim() || undefined,
-                })
-                setEditingDescription(false)
+                });
+                setEditingDescription(false);
               }
               if (e.key === "Escape") {
-                setEditingDescription(false)
+                setEditingDescription(false);
               }
             }}
           />
@@ -322,8 +340,8 @@ export function LinkItem({
                 onClick={() => {
                   onUpdateLink(link.id, {
                     userDescription: descDraft.trim() || undefined,
-                  })
-                  setEditingDescription(false)
+                  });
+                  setEditingDescription(false);
                 }}
               >
                 {"Save"}
@@ -343,18 +361,20 @@ export function LinkItem({
               <span className="font-medium text-foreground">
                 {link.title || hostname}
               </span>
-              {" from your collection. This action syncs to all connected peers and cannot be undone."}
+              {
+                " from your collection. This action syncs to all connected peers and cannot be undone."
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{"Cancel"}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                onDelete(link.id)
+                onDelete(link.id);
                 toast.success(`"${link.title || hostname}" deleted`, {
                   description: "Link removed from your collection",
                   icon: "🗑️",
-                })
+                });
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -364,5 +384,5 @@ export function LinkItem({
         </AlertDialogContent>
       </AlertDialog>
     </React.Fragment>
-  )
+  );
 }
