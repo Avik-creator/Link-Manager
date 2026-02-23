@@ -184,6 +184,7 @@ export function LinkManager() {
             groups={groups}
             activeGroupId={activeGroupId}
             onAddLink={handleAddLink}
+            onAddGroup={addGroup}
           />
           <LinkList
             links={links}

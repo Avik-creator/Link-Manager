@@ -103,7 +103,7 @@ export function LinkList({
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground text-balance">
               {filterGroupId && filterGroupId !== "all"
                 ? "Move links here from the actions menu, or add new ones."
-                : "Paste a URL above to save your first link. Links sync automatically with connected peers."}
+                : "Paste a URL above to save your first link. Use the group dropdown next to the input to create groups and organize links."}
             </p>
           </div>
         </div>

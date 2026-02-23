@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Group, Link } from '@/lib/types'
+import { GROUP_COLORS } from '@/lib/types'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -11,13 +12,21 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectSeparator,
 } from '@/components/ui/select'
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
   Collapsible,
-  CollapsibleTrigger,
   CollapsibleContent,
 } from '@/components/ui/collapsible'
-import { Plus, Link as LinkIcon, Inbox, ChevronDown } from 'lucide-react'
+import { Plus, Link as LinkIcon, Inbox, ChevronDown, FolderPlus } from 'lucide-react'
 import { isValidUrl } from '@/lib/url'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -26,15 +35,30 @@ interface LinkInputProps {
   groups: Group[]
   activeGroupId: string | null
   onAddLink: (url: string, metadata?: Partial<Link>) => Link | null
+  onAddGroup: (name: string, color: string) => Group
 }
 
-export function LinkInput({ groups, activeGroupId, onAddLink }: LinkInputProps) {
+export function LinkInput({ groups, activeGroupId, onAddLink, onAddGroup }: LinkInputProps) {
   const [value, setValue] = useState('')
   const [description, setDescription] = useState('')
   const [selectedGroupId, setSelectedGroupId] = useState<string>('none')
   const [isFocused, setIsFocused] = useState(false)
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [createGroupOpen, setCreateGroupOpen] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+  const [newGroupColor, setNewGroupColor] = useState(GROUP_COLORS[0].value)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleCreateGroup = useCallback(() => {
+    const name = newGroupName.trim()
+    if (!name) return
+    const group = onAddGroup(name, newGroupColor)
+    setSelectedGroupId(group.id)
+    setNewGroupName('')
+    setNewGroupColor(GROUP_COLORS[0].value)
+    setCreateGroupOpen(false)
+    toast.success('Group created', { description: `"${name}" is ready to use.` })
+  }, [newGroupName, newGroupColor, onAddGroup])
 
   // When the active filter changes, auto-select the target group
   useEffect(() => {
@@ -167,6 +191,18 @@ export function LinkInput({ groups, activeGroupId, onAddLink }: LinkInputProps) 
                   </span>
                 </SelectItem>
               ))}
+              <SelectSeparator />
+              <button
+                className="relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-primary"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setCreateGroupOpen(true)
+                }}
+              >
+                <FolderPlus className="h-3.5 w-3.5" />
+                Create new group
+              </button>
             </SelectContent>
           </Select>
 
@@ -217,6 +253,60 @@ export function LinkInput({ groups, activeGroupId, onAddLink }: LinkInputProps) 
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Create group dialog */}
+      <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>New Group</DialogTitle>
+            <DialogDescription>
+              Create a group to organize your links.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-muted-foreground">Name</label>
+              <Input
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="e.g. Work, Reading, Inspiration..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateGroup()
+                }}
+                autoFocus
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-muted-foreground">Color</label>
+              <div className="flex flex-wrap gap-2">
+                {GROUP_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => setNewGroupColor(c.value)}
+                    className={cn(
+                      "h-7 w-7 rounded-full transition-all",
+                      newGroupColor === c.value
+                        ? "ring-2 ring-ring ring-offset-2 ring-offset-background scale-110"
+                        : "hover:scale-105"
+                    )}
+                    style={{ backgroundColor: c.value }}
+                    aria-label={c.name}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateGroupOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateGroup} disabled={!newGroupName.trim()}>
+              Create Group
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
