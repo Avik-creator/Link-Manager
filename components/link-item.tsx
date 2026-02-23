@@ -62,14 +62,14 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
         <HoverCardTrigger asChild>
           <div
             className={cn(
-              "group flex h-full cursor-default items-center gap-3 border-b border-border px-5 py-3 transition-colors",
+              "group flex cursor-default items-center gap-2 border-b border-border px-3 py-2.5 transition-colors sm:gap-3 sm:px-5 sm:py-3",
               isHovered && "bg-accent/60"
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
             {/* Favicon */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted sm:h-9 sm:w-9">
               {link.favicon && !faviconError ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
@@ -91,7 +91,7 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
                 </span>
                 {currentGroup && (
                   <span
-                    className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium text-foreground"
+                    className="hidden items-center rounded-md px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex"
                     style={{
                       backgroundColor: `color-mix(in oklch, ${currentGroup.color} 15%, transparent)`,
                       color: currentGroup.color,
@@ -102,17 +102,17 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
                 )}
               </div>
               <div className="mt-0.5 flex items-center gap-2">
-                <span className="max-w-[300px] truncate text-xs text-muted-foreground">
+                <span className="truncate text-xs text-muted-foreground">
                   {link.url}
                 </span>
-                <span className="shrink-0 text-[11px] text-muted-foreground/60">
+                <span className="hidden shrink-0 text-[11px] text-muted-foreground/60 sm:inline">
                   {timeAgo}
                 </span>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+            {/* Actions -- always visible on touch, hover reveal on desktop */}
+            <div className="flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
               <Button
                 variant="ghost"
                 size="icon"
@@ -202,7 +202,7 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup }: LinkItemProp
             </div>
           </div>
         </HoverCardTrigger>
-        <HoverCardContent side="right" align="start" className="w-auto p-3">
+        <HoverCardContent side="bottom" align="start" sideOffset={8} className="w-auto max-w-[calc(100vw-2rem)] p-3">
           <LinkPreviewCard url={link.url} />
         </HoverCardContent>
       </HoverCard>

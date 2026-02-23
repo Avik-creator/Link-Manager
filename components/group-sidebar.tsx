@@ -106,7 +106,7 @@ export function GroupSidebar({
 
   return (
     <>
-      <div className="flex w-56 shrink-0 flex-col border-r border-border bg-muted/20">
+      <div className="flex w-56 shrink-0 flex-col border-r border-border bg-muted/20 max-md:w-full max-md:border-r-0">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
