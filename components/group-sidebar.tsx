@@ -224,46 +224,49 @@ export function GroupSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-              {groups.map((group) => (
-                <SidebarMenuItem key={group.id}>
-                  <SidebarMenuButton
-                    isActive={activeGroupId === group.id}
-                    onClick={() => onSelectGroup(group.id)}
-                    tooltip={group.name}
-                  >
-                    <span
-                      className="size-3 rounded-full shrink-0"
-                      style={{ backgroundColor: group.color }}
-                    />
-                    <span>{group.name}</span>
-                  </SidebarMenuButton>
-                  <SidebarMenuBadge>
-                    {linkCountByGroup[group.id] || 0}
-                  </SidebarMenuBadge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontal className="size-4" />
-                        <span className="sr-only">More</span>
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="bottom" align="start" className="w-36">
-                      <DropdownMenuItem onClick={() => openEdit(group)}>
-                        <Pencil className="size-4" />
-                        Rename
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => setDeleteGroupState(group)}
-                      >
-                        <Trash2 className="size-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarMenuItem>
-              ))}
+              {groups.map((group) => {
+                const count = linkCountByGroup[group.id] || 0
+                return (
+                  <SidebarMenuItem key={group.id}>
+                    <SidebarMenuButton
+                      isActive={activeGroupId === group.id}
+                      onClick={() => onSelectGroup(group.id)}
+                      tooltip={`${group.name} (${count})`}
+                    >
+                      <span
+                        className="size-3 rounded-full shrink-0"
+                        style={{ backgroundColor: group.color }}
+                      />
+                      <span className="flex-1 truncate">{group.name}</span>
+                    </SidebarMenuButton>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuAction showOnHover>
+                          <MoreHorizontal className="size-4" />
+                          <span className="sr-only">More</span>
+                        </SidebarMenuAction>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent side="bottom" align="start" className="w-36">
+                        <DropdownMenuItem onClick={() => openEdit(group)}>
+                          <Pencil className="size-4" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() => setDeleteGroupState(group)}
+                        >
+                          <Trash2 className="size-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <SidebarMenuBadge className="group-hover/menu-item:opacity-0 transition-opacity">
+                      {count}
+                    </SidebarMenuBadge>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

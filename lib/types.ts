@@ -11,6 +11,8 @@ export interface Link {
   favicon?: string
   tags: string[]
   groupId?: string
+  /** The peer ID of the user who created this link (for ownership checks) */
+  ownerId?: string
   createdAt: number
   updatedAt: number
   deleted: boolean

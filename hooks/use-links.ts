@@ -12,6 +12,7 @@ import {
   updateGroup as updateGroupInDoc,
   deleteGroup as deleteGroupFromDoc,
   observeGroups,
+  getDeviceId,
 } from "@/lib/crdt/yjs-doc"
 
 /**
@@ -99,6 +100,8 @@ export function useLinks() {
     deleteGroupFromDoc(id)
   }, [])
 
+  const deviceId = getDeviceId()
+
   return {
     links,
     groups,
@@ -110,5 +113,6 @@ export function useLinks() {
     updateGroup,
     deleteGroup,
     isLoaded,
+    deviceId,
   }
 }

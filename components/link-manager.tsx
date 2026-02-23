@@ -17,9 +17,10 @@ import {
   SidebarProvider,
   SidebarInset,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
-import { Radio, ArrowDownUp } from "lucide-react"
+import { Radio, ArrowDownUp, Menu, PanelLeft } from "lucide-react"
 
 export function LinkManager() {
   const {
@@ -33,6 +34,7 @@ export function LinkManager() {
     updateGroup,
     deleteGroup,
     isLoaded,
+    deviceId,
   } = useLinks()
   const { peerId, connections, syncState, connect, disconnect, forceSync } =
     usePeerSync()
@@ -86,7 +88,7 @@ export function LinkManager() {
           {/* Header */}
           <header className="flex items-center justify-between border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-1" />
+              <SidebarTrigger className="-ml-1 size-8 [&>svg]:size-5" />
               <Separator orientation="vertical" className="mr-1 h-4" />
               <div className="hidden sm:flex sm:items-center sm:gap-3">
                 <ConnectionBadge />
@@ -142,6 +144,7 @@ export function LinkManager() {
             onMoveToGroup={moveToGroup}
             onUpdateLink={updateLink}
             filterGroupId={activeGroupId}
+            deviceId={deviceId}
           />
         </div>
       </SidebarInset>

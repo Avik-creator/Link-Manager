@@ -20,6 +20,7 @@ interface LinkListProps {
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
   onUpdateLink: (id: string, partial: Partial<Link>) => void
   filterGroupId: string | null // null = show all, "ungrouped" = no group, else group id
+  deviceId: string
 }
 
 interface GroupSection {
@@ -37,6 +38,7 @@ export function LinkList({
   onMoveToGroup,
   onUpdateLink,
   filterGroupId,
+  deviceId,
 }: LinkListProps) {
   // Build grouped sections
   const { sections, ungroupedLinks, filteredLinks } = useMemo(() => {
@@ -123,6 +125,7 @@ export function LinkList({
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
             onUpdateLink={onUpdateLink}
+            deviceId={deviceId}
           />
         ))}
       </div>
@@ -141,6 +144,7 @@ export function LinkList({
           onDeleteLink={onDeleteLink}
           onMoveToGroup={onMoveToGroup}
           onUpdateLink={onUpdateLink}
+          deviceId={deviceId}
         />
       ))}
 
@@ -151,6 +155,7 @@ export function LinkList({
           onDeleteLink={onDeleteLink}
           onMoveToGroup={onMoveToGroup}
           onUpdateLink={onUpdateLink}
+          deviceId={deviceId}
         />
       )}
 
@@ -163,6 +168,7 @@ export function LinkList({
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
             onUpdateLink={onUpdateLink}
+            deviceId={deviceId}
           />
         ))
       )}
@@ -176,12 +182,14 @@ function GroupCollapsibleSection({
   onDeleteLink,
   onMoveToGroup,
   onUpdateLink,
+  deviceId,
 }: {
   section: GroupSection
   groups: Group[]
   onDeleteLink: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
   onUpdateLink: (id: string, partial: Partial<Link>) => void
+  deviceId: string
 }) {
   const [open, setOpen] = useState(true)
 
@@ -212,6 +220,7 @@ function GroupCollapsibleSection({
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
             onUpdateLink={onUpdateLink}
+            deviceId={deviceId}
           />
         ))}
       </CollapsibleContent>
@@ -225,12 +234,14 @@ function UngroupedSection({
   onDeleteLink,
   onMoveToGroup,
   onUpdateLink,
+  deviceId,
 }: {
   links: Link[]
   groups: Group[]
   onDeleteLink: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
   onUpdateLink: (id: string, partial: Partial<Link>) => void
+  deviceId: string
 }) {
   const [open, setOpen] = useState(true)
 
@@ -258,6 +269,7 @@ function UngroupedSection({
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
             onUpdateLink={onUpdateLink}
+            deviceId={deviceId}
           />
         ))}
       </CollapsibleContent>
