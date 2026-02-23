@@ -135,9 +135,21 @@ export function updateLink(id: string, partial: Partial<Link>): void {
   }
 }
 
-/** Soft-deletes a link by setting its deleted flag. */
+/** Soft-deletes a link by setting its deleted flag. Only the owner device can delete. */
 export function deleteLink(id: string): void {
-  updateLink(id, { deleted: true })
+  const linksMap = getLinksMap()
+  const raw = linksMap.get(id)
+  if (!raw) return
+  try {
+    const existing: Link = JSON.parse(raw)
+    // Only the owner (or links with no ownerId for backwards-compat) can delete
+    if (existing.ownerId && existing.ownerId !== getDeviceId()) {
+      return
+    }
+    updateLink(id, { deleted: true })
+  } catch {
+    // skip malformed
+  }
 }
 
 /** Returns all non-deleted links, sorted newest-first. */

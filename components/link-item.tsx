@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from "react"
 import type { Link, Group } from "@/lib/types"
 import { extractHostname, formatRelativeTime } from "@/lib/url"
 import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from "@/components/ui/hover-card"
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -41,8 +42,10 @@ import {
   FolderMinus,
   Pencil,
   FileText,
+  Eye,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden"
 
 interface LinkItemProps {
   link: Link
@@ -58,6 +61,7 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
   const [isHovered, setIsHovered] = useState(false)
   const [faviconError, setFaviconError] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [editingDescription, setEditingDescription] = useState(false)
   const [descDraft, setDescDraft] = useState(link.userDescription || "")
   const descRef = useRef<HTMLTextAreaElement>(null)
@@ -73,16 +77,14 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
 
   return (
     <>
-      <HoverCard openDelay={400} closeDelay={200}>
-        <HoverCardTrigger asChild>
-          <div
-            className={cn(
-              "group flex cursor-default items-center gap-2 border-b border-border px-3 py-2.5 transition-colors sm:gap-3 sm:px-5 sm:py-3",
-              isHovered && "bg-accent/60"
-            )}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
+      <div
+        className={cn(
+          "group flex cursor-default items-center gap-2 border-b border-border px-3 py-2.5 transition-colors sm:gap-3 sm:px-5 sm:py-3",
+          isHovered && "bg-accent/60"
+        )}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
             {/* Favicon */}
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted sm:h-9 sm:w-9">
               {link.favicon && !faviconError ? (
@@ -133,6 +135,18 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
 
             {/* Actions -- always visible on touch, hover reveal on desktop */}
             <div className="flex items-center gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setPreviewOpen(true)
+                }}
+                aria-label="Preview link"
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
@@ -237,11 +251,40 @@ export function LinkItem({ link, groups, onDelete, onMoveToGroup, onUpdateLink, 
               </DropdownMenu>
             </div>
           </div>
-        </HoverCardTrigger>
-        <HoverCardContent side="bottom" align="start" sideOffset={8} className="w-auto max-w-[calc(100vw-2rem)] p-3">
-          <LinkPreviewCard url={link.url} />
-        </HoverCardContent>
-      </HoverCard>
+        </div>
+
+      {/* Preview Dialog -- centered, proper animations */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-sm p-0 overflow-hidden gap-0">
+          <VisuallyHidden.Root>
+            <DialogTitle>Preview: {link.title || hostname}</DialogTitle>
+            <DialogDescription>Link preview for {link.url}</DialogDescription>
+          </VisuallyHidden.Root>
+          <div className="p-4">
+            <LinkPreviewCard url={link.url} />
+          </div>
+          <div className="flex items-center justify-between border-t border-border px-4 py-3 bg-muted/30">
+            <span className="truncate text-xs text-muted-foreground max-w-[200px]">
+              {link.url}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 text-xs shrink-0"
+              asChild
+            >
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Inline note editor */}
       {editingDescription && (
