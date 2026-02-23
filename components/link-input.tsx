@@ -144,9 +144,9 @@ export function LinkInput({ groups, activeGroupId, onAddLink, onAddGroup }: Link
   )
 
   return (
-    <div className="border-b border-border">
-      <div className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-2 sm:px-5 sm:py-3">
-        <div className="relative flex-1 min-w-0">
+    <div className="border-b border-border w-full">
+      <div className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-2 sm:px-5 sm:py-3 w-full">
+        <div className="relative flex-1 min-w-0 w-full shrink-0">
           <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             ref={inputRef}
@@ -156,7 +156,10 @@ export function LinkInput({ groups, activeGroupId, onAddLink, onAddGroup }: Link
             onBlur={() => setIsFocused(false)}
             onPaste={handlePaste}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !detailsOpen) handleSubmit()
+              if (e.key === 'Enter' && !detailsOpen) {
+                e.preventDefault()
+                handleSubmit()
+              }
             }}
             placeholder="Paste or type a URL..."
             className="pl-9 pr-4 bg-muted/50 border-transparent focus-visible:border-ring focus-visible:ring-ring/20"
@@ -224,7 +227,7 @@ export function LinkInput({ groups, activeGroupId, onAddLink, onAddGroup }: Link
             size="icon"
             disabled={!value.trim()}
             aria-label="Add link"
-            className="shrink-0"
+            className="shrink-0 hidden sm:flex"
           >
             <Plus className="h-4 w-4" />
           </Button>

@@ -83,25 +83,23 @@ export function LinkManager() {
       />
 
       <SidebarInset>
-        <div className="flex h-dvh flex-col">
+        <div className="flex h-dvh w-full max-w-full flex-col overflow-hidden">
           {/* Header */}
-          <header className="flex items-center justify-between border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
-            <div className="flex items-center gap-2">
+          <header className="flex items-center justify-between gap-2 border-b border-border px-2 py-2 sm:px-4 sm:py-2.5">
+            <div className="flex items-center gap-1.5">
               <SidebarToggleButton />
-              <Separator orientation="vertical" className="mr-1 h-4" />
+              <Separator orientation="vertical" className="hidden h-4 sm:inline sm:mr-1" />
               <div className="hidden sm:flex sm:items-center sm:gap-3">
                 <ConnectionBadge />
                 <Separator orientation="vertical" className="h-4" />
                 <SyncStatus syncState={syncState} peerCount={activePeers.length} />
               </div>
-              {/* Compact mobile status */}
-              <div className="flex items-center gap-2 sm:hidden">
+              <div className="flex items-center gap-1.5 sm:hidden">
                 <ConnectionBadge />
-                <SyncStatus syncState={syncState} peerCount={activePeers.length} />
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <Button
                 size="sm"
                 variant="ghost"
