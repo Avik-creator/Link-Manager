@@ -29,6 +29,7 @@ export function LinkManager() {
     links,
     groups,
     addLink,
+    updateLink,
     deleteLink,
     moveToGroup,
     addGroup,
@@ -183,6 +184,7 @@ export function LinkManager() {
             groups={groups}
             activeGroupId={activeGroupId}
             onAddLink={handleAddLink}
+            onAddGroup={addGroup}
           />
           <LinkList
             links={links}
@@ -190,6 +192,7 @@ export function LinkManager() {
             isLoaded={isLoaded}
             onDeleteLink={deleteLink}
             onMoveToGroup={moveToGroup}
+            onUpdateLink={updateLink}
             filterGroupId={activeGroupId}
           />
         </div>

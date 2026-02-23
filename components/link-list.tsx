@@ -18,6 +18,7 @@ interface LinkListProps {
   isLoaded: boolean
   onDeleteLink: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
+  onUpdateLink: (id: string, partial: Partial<Link>) => void
   filterGroupId: string | null // null = show all, "ungrouped" = no group, else group id
 }
 
@@ -34,6 +35,7 @@ export function LinkList({
   isLoaded,
   onDeleteLink,
   onMoveToGroup,
+  onUpdateLink,
   filterGroupId,
 }: LinkListProps) {
   // Build grouped sections
@@ -101,7 +103,7 @@ export function LinkList({
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground text-balance">
               {filterGroupId && filterGroupId !== "all"
                 ? "Move links here from the actions menu, or add new ones."
-                : "Paste a URL above to save your first link. Links sync automatically with connected peers."}
+                : "Paste a URL above to save your first link. Use the group dropdown next to the input to create groups and organize links."}
             </p>
           </div>
         </div>
@@ -120,6 +122,7 @@ export function LinkList({
             groups={groups}
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
+            onUpdateLink={onUpdateLink}
           />
         ))}
       </div>
@@ -137,6 +140,7 @@ export function LinkList({
           groups={groups}
           onDeleteLink={onDeleteLink}
           onMoveToGroup={onMoveToGroup}
+          onUpdateLink={onUpdateLink}
         />
       ))}
 
@@ -146,6 +150,7 @@ export function LinkList({
           groups={groups}
           onDeleteLink={onDeleteLink}
           onMoveToGroup={onMoveToGroup}
+          onUpdateLink={onUpdateLink}
         />
       )}
 
@@ -157,6 +162,7 @@ export function LinkList({
             groups={groups}
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
+            onUpdateLink={onUpdateLink}
           />
         ))
       )}
@@ -169,11 +175,13 @@ function GroupCollapsibleSection({
   groups,
   onDeleteLink,
   onMoveToGroup,
+  onUpdateLink,
 }: {
   section: GroupSection
   groups: Group[]
   onDeleteLink: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
+  onUpdateLink: (id: string, partial: Partial<Link>) => void
 }) {
   const [open, setOpen] = useState(true)
 
@@ -203,6 +211,7 @@ function GroupCollapsibleSection({
             groups={groups}
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
+            onUpdateLink={onUpdateLink}
           />
         ))}
       </CollapsibleContent>
@@ -215,11 +224,13 @@ function UngroupedSection({
   groups,
   onDeleteLink,
   onMoveToGroup,
+  onUpdateLink,
 }: {
   links: Link[]
   groups: Group[]
   onDeleteLink: (id: string) => void
   onMoveToGroup: (linkId: string, groupId: string | undefined) => void
+  onUpdateLink: (id: string, partial: Partial<Link>) => void
 }) {
   const [open, setOpen] = useState(true)
 
@@ -246,6 +257,7 @@ function UngroupedSection({
             groups={groups}
             onDelete={onDeleteLink}
             onMoveToGroup={onMoveToGroup}
+            onUpdateLink={onUpdateLink}
           />
         ))}
       </CollapsibleContent>
